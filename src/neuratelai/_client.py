@@ -1,0 +1,145 @@
+from __future__ import annotations
+
+import httpx
+
+from ._base_client import (
+    DEFAULT_BASE_URL,
+    DEFAULT_MAX_RETRIES,
+    DEFAULT_TIMEOUT,
+    AsyncAPIClient,
+    SyncAPIClient,
+)
+from .resources.agents import AgentsResource, AsyncAgentsResource
+from .resources.api_keys import APIKeysResource, AsyncAPIKeysResource
+from .resources.billing import AsyncBillingResource, BillingResource
+from .resources.call_lists import AsyncCallListsResource, CallListsResource
+from .resources.calls import AsyncCallsResource, CallsResource
+from .resources.campaigns import AsyncCampaignsResource, CampaignsResource
+from .resources.integrations import AsyncIntegrationsResource, IntegrationsResource
+from .resources.knowledge_base import AsyncKnowledgeBaseResource, KnowledgeBaseResource
+from .resources.phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersResource
+from .resources.webhooks import AsyncWebhooksResource, WebhooksResource
+
+
+class Neuratel:
+    """Synchronous Neuratel API client.
+
+    Usage::
+
+        client = Neuratel(api_key="nk_live_...")
+        agent = client.agents.create(name="Support Bot", brain={...})
+        for agent in client.agents.list():
+            print(agent["name"])
+    """
+
+    agents: AgentsResource
+    calls: CallsResource
+    phone_numbers: PhoneNumbersResource
+    campaigns: CampaignsResource
+    call_lists: CallListsResource
+    knowledge_base: KnowledgeBaseResource
+    webhooks: WebhooksResource
+    billing: BillingResource
+    api_keys: APIKeysResource
+    integrations: IntegrationsResource
+
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        base_url: str = DEFAULT_BASE_URL,
+        timeout: float = DEFAULT_TIMEOUT,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        httpx_client: httpx.Client | None = None,
+    ) -> None:
+        self._base = SyncAPIClient(
+            api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            httpx_client=httpx_client,
+        )
+        self.agents = AgentsResource(self._base)
+        self.calls = CallsResource(self._base)
+        self.phone_numbers = PhoneNumbersResource(self._base)
+        self.campaigns = CampaignsResource(self._base)
+        self.call_lists = CallListsResource(self._base)
+        self.knowledge_base = KnowledgeBaseResource(self._base)
+        self.webhooks = WebhooksResource(self._base)
+        self.billing = BillingResource(self._base)
+        self.api_keys = APIKeysResource(self._base)
+        self.integrations = IntegrationsResource(self._base)
+
+    def close(self) -> None:
+        self._base.close()
+
+    def __enter__(self) -> Neuratel:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
+
+    def __repr__(self) -> str:
+        return f"Neuratel(base_url={self._base._base_url!r})"
+
+
+class AsyncNeuratel:
+    """Asynchronous Neuratel API client.
+
+    Usage::
+
+        async with AsyncNeuratel(api_key="nk_live_...") as client:
+            agent = await client.agents.create(name="Support Bot", brain={...})
+            async for agent in client.agents.list():
+                print(agent["name"])
+    """
+
+    agents: AsyncAgentsResource
+    calls: AsyncCallsResource
+    phone_numbers: AsyncPhoneNumbersResource
+    campaigns: AsyncCampaignsResource
+    call_lists: AsyncCallListsResource
+    knowledge_base: AsyncKnowledgeBaseResource
+    webhooks: AsyncWebhooksResource
+    billing: AsyncBillingResource
+    api_keys: AsyncAPIKeysResource
+    integrations: AsyncIntegrationsResource
+
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        base_url: str = DEFAULT_BASE_URL,
+        timeout: float = DEFAULT_TIMEOUT,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        httpx_client: httpx.AsyncClient | None = None,
+    ) -> None:
+        self._base = AsyncAPIClient(
+            api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            httpx_client=httpx_client,
+        )
+        self.agents = AsyncAgentsResource(self._base)
+        self.calls = AsyncCallsResource(self._base)
+        self.phone_numbers = AsyncPhoneNumbersResource(self._base)
+        self.campaigns = AsyncCampaignsResource(self._base)
+        self.call_lists = AsyncCallListsResource(self._base)
+        self.knowledge_base = AsyncKnowledgeBaseResource(self._base)
+        self.webhooks = AsyncWebhooksResource(self._base)
+        self.billing = AsyncBillingResource(self._base)
+        self.api_keys = AsyncAPIKeysResource(self._base)
+        self.integrations = AsyncIntegrationsResource(self._base)
+
+    async def aclose(self) -> None:
+        await self._base.aclose()
+
+    async def __aenter__(self) -> AsyncNeuratel:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    def __repr__(self) -> str:
+        return f"AsyncNeuratel(base_url={self._base._base_url!r})"

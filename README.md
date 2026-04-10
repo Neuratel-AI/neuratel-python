@@ -1,0 +1,98 @@
+# Neuratel AI — Python SDK
+
+[![PyPI](https://img.shields.io/pypi/v/neuratelai)](https://pypi.org/project/neuratelai/)
+[![Python](https://img.shields.io/pypi/pyversions/neuratelai)](https://pypi.org/project/neuratelai/)
+[![Docs](https://img.shields.io/badge/docs-docs.neuratel.ai-black)](https://docs.neuratel.ai/sdk/overview)
+
+Official Python SDK for the [Neuratel](https://neuratel.ai) API — build and manage AI voice agents in a few lines of code.
+
+## Installation
+
+```bash
+pip install neuratelai
+# or
+uv add neuratelai
+```
+
+## Quick Start
+
+```python
+from neuratelai import Neuratel
+
+client = Neuratel()  # reads NEURATEL_API_KEY from env
+
+# Create an agent
+agent = client.agents.create(
+    name="Support Bot",
+    brain={"provider": "openai", "model": "gpt-4.1", "instructions": "You are a helpful support agent."},
+    voice={"provider": "elevenlabs", "voice_id": "gHu9GtaHOXcSqFTK06ux", "model": "eleven_flash_v2_5"},
+    transcriber={"provider": "deepgram", "model": "nova-3"},
+)
+print(agent["id"])
+
+# Place an outbound call
+call = client.calls.outbound(
+    agent_id=agent["id"],
+    to_number="+14155551234",
+    number_id="pn_your_number_id",
+)
+print(call["status"])
+
+# Iterate all agents (auto-paginates)
+for agent in client.agents.list().auto_paging_iter():
+    print(agent["id"], agent["name"])
+```
+
+## Async
+
+```python
+import asyncio
+from neuratelai import AsyncNeuratel
+
+async def main():
+    async with AsyncNeuratel() as client:
+        agent = await client.agents.create(
+            name="Bot",
+            brain={"provider": "openai", "model": "gpt-4.1", "instructions": "..."},
+        )
+        async for a in await client.agents.list():
+            print(a["id"])
+
+asyncio.run(main())
+```
+
+## Resources
+
+| Resource | Methods |
+|----------|---------|
+| `agents` | `create`, `list`, `get`, `update`, `delete`, `duplicate`, `web_call`, `list_versions`, `get_version`, `restore_version` |
+| `calls` | `list`, `get`, `delete`, `outbound`, `active`, `concurrency`, `hangup`, `listen`, `whisper`, `barge` |
+| `phone_numbers` | `list`, `get`, `update`, `assign`, `unassign` |
+| `campaigns` | `create`, `list`, `get`, `update`, `delete`, `start`, `pause`, `stop`, `list_calls`, `get_call` |
+| `call_lists` | `create`, `list`, `get`, `update`, `delete`, `bulk_import`, `add_contact`, `list_contacts`, `update_contact`, `delete_contact` |
+| `knowledge_base` | `list`, `get`, `update`, `delete`, `from_file`, `from_url`, `from_text`, `query`, `list_for_agent`, `assign_to_agent` |
+| `webhooks` | `events`, `create`, `list`, `get`, `update`, `delete`, `test`, `rotate_secret`, `logs` |
+| `billing` | `balance`, `usage`, `balance_history` |
+| `api_keys` | `create`, `list`, `revoke`, `rotate`, `scopes` |
+| `integrations` | `list`, `create`, `update`, `delete`, `list_tools`, `refresh_tools` |
+
+## Error Handling
+
+```python
+from neuratelai import AuthenticationError, NotFoundError, RateLimitError, APIError
+
+try:
+    agent = client.agents.get("ag_unknown")
+except AuthenticationError:
+    print("Invalid API key")
+except NotFoundError:
+    print("Agent not found")
+except RateLimitError:
+    print("Rate limited")
+except APIError as e:
+    print(f"HTTP {e.status_code}: {e}")
+```
+
+## Requirements
+
+Python 3.10+ · [docs.neuratel.ai](https://docs.neuratel.ai/sdk/overview)
