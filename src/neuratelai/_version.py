@@ -1,1 +1,6 @@
-__version__ = "0.1.1"
+try:
+    from importlib.metadata import version as _version
+
+    __version__ = _version("neuratelai")
+except Exception:
+    __version__ = "unknown"
