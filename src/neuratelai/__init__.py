@@ -1,6 +1,6 @@
 """Neuratel Python SDK — official client for the Neuratel API."""
 
-from ._client import AsyncNeuratel, Neuratel
+from ._client import AsyncNeuratel, AsyncNeuratelAI, Neuratel, NeuratelAI
 from ._exceptions import (
     APIConnectionError,
     APIError,
@@ -19,8 +19,10 @@ from ._streaming import AsyncStream, PlatformEvent, Stream
 from ._version import __version__
 
 __all__ = [
-    "Neuratel",
-    "AsyncNeuratel",
+    "NeuratelAI",
+    "AsyncNeuratelAI",
+    "Neuratel",  # backwards-compatible alias
+    "AsyncNeuratel",  # backwards-compatible alias
     "NeuratelError",
     "APIError",
     "AuthenticationError",

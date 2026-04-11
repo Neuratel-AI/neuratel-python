@@ -17,9 +17,9 @@ uv add neuratelai
 ## Quick Start
 
 ```python
-from neuratelai import Neuratel
+from neuratelai import NeuratelAI
 
-client = Neuratel()  # reads NEURATEL_API_KEY from env
+client = NeuratelAI()  # reads NEURATEL_API_KEY from env
 
 # Create an agent
 agent = client.agents.create(
@@ -47,10 +47,10 @@ for agent in client.agents.list().auto_paging_iter():
 
 ```python
 import asyncio
-from neuratelai import AsyncNeuratel
+from neuratelai import AsyncNeuratelAI
 
 async def main():
-    async with AsyncNeuratel() as client:
+    async with AsyncNeuratelAI() as client:
         agent = await client.agents.create(
             name="Bot",
             brain={"provider": "openai", "model": "gpt-4.1", "instructions": "..."},

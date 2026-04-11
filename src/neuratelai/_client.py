@@ -21,12 +21,12 @@ from .resources.phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersReso
 from .resources.webhooks import AsyncWebhooksResource, WebhooksResource
 
 
-class Neuratel:
+class NeuratelAI:
     """Synchronous Neuratel API client.
 
     Usage::
 
-        client = Neuratel(api_key="nk_live_...")
+        client = NeuratelAI(api_key="nk_live_...")
         agent = client.agents.create(name="Support Bot", brain={...})
         for agent in client.agents.list():
             print(agent["name"])
@@ -73,22 +73,26 @@ class Neuratel:
     def close(self) -> None:
         self._base.close()
 
-    def __enter__(self) -> Neuratel:
+    def __enter__(self) -> NeuratelAI:
         return self
 
     def __exit__(self, *_: object) -> None:
         self.close()
 
     def __repr__(self) -> str:
-        return f"Neuratel(base_url={self._base._base_url!r})"
+        return f"NeuratelAI(base_url={self._base._base_url!r})"
 
 
-class AsyncNeuratel:
+# Backwards-compatible alias
+Neuratel = NeuratelAI
+
+
+class AsyncNeuratelAI:
     """Asynchronous Neuratel API client.
 
     Usage::
 
-        async with AsyncNeuratel(api_key="nk_live_...") as client:
+        async with AsyncNeuratelAI(api_key="nk_live_...") as client:
             agent = await client.agents.create(name="Support Bot", brain={...})
             async for agent in client.agents.list():
                 print(agent["name"])
@@ -135,11 +139,15 @@ class AsyncNeuratel:
     async def aclose(self) -> None:
         await self._base.aclose()
 
-    async def __aenter__(self) -> AsyncNeuratel:
+    async def __aenter__(self) -> AsyncNeuratelAI:
         return self
 
     async def __aexit__(self, *_: object) -> None:
         await self.aclose()
 
     def __repr__(self) -> str:
-        return f"AsyncNeuratel(base_url={self._base._base_url!r})"
+        return f"AsyncNeuratelAI(base_url={self._base._base_url!r})"
+
+
+# Backwards-compatible alias
+AsyncNeuratel = AsyncNeuratelAI
