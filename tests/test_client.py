@@ -67,3 +67,25 @@ def test_client_context_manager() -> None:
 async def test_async_client_context_manager() -> None:
     async with AsyncNeuratelAI(api_key="nk_test_key") as client:
         assert client.agents is not None
+
+
+def test_env_var_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Client reads NEURATEL_API_KEY from env when api_key is not passed."""
+    monkeypatch.setenv("NEURATEL_API_KEY", "nk_from_env")
+    client = NeuratelAI()
+    assert client.agents is not None
+
+
+def test_env_var_fallback_async(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NEURATEL_API_KEY", "nk_from_env")
+    client = AsyncNeuratelAI()
+    assert client.agents is not None
+
+
+def test_no_key_raises() -> None:
+    """Client raises AuthenticationError when no key is available."""
+    import os
+
+    os.environ.pop("NEURATEL_API_KEY", None)
+    with pytest.raises(AuthenticationError):
+        NeuratelAI()

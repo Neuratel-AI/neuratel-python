@@ -40,6 +40,7 @@ class KnowledgeBaseResource:
             response = self._client._http.request(
                 "POST",
                 "/knowledge-base/from-file",
+                data={"name": filename},
                 files={"file": (filename, f)},
             )
         from .._base_client import _raise_for_status
@@ -51,7 +52,7 @@ class KnowledgeBaseResource:
         return self._client._post("/knowledge-base/from-url", json={"url": url, **body})
 
     def from_text(self, text: str, **body: Any) -> Any:
-        return self._client._post("/knowledge-base/from-text", json={"text": text, **body})
+        return self._client._post("/knowledge-base/from-text", json={"content": text, **body})
 
     def query(self, query: str, **body: Any) -> Any:
         return self._client._post("/knowledge-base/query", json={"query": query, **body})
@@ -92,25 +93,32 @@ class AsyncKnowledgeBaseResource:
 
     async def from_file(self, file_path: str, *, name: str | None = None) -> Any:
         """Upload a file (PDF, DOCX, TXT) as a knowledge base source."""
+        import asyncio
         import os
 
         filename = name or os.path.basename(file_path)
-        with open(file_path, "rb") as f:
-            response = await self._client._http.request(
-                "POST",
-                "/knowledge-base/from-file",
-                files={"file": (filename, f)},
-            )
+        file_bytes = await asyncio.to_thread(self._read_file, file_path)
+        response = await self._client._http.request(
+            "POST",
+            "/knowledge-base/from-file",
+            data={"name": filename},
+            files={"file": (filename, file_bytes)},
+        )
         from .._base_client import _raise_for_status
 
         _raise_for_status(response)
         return response.json()
 
+    @staticmethod
+    def _read_file(path: str) -> bytes:
+        with open(path, "rb") as f:
+            return f.read()
+
     async def from_url(self, url: str, **body: Any) -> Any:
         return await self._client._post("/knowledge-base/from-url", json={"url": url, **body})
 
     async def from_text(self, text: str, **body: Any) -> Any:
-        return await self._client._post("/knowledge-base/from-text", json={"text": text, **body})
+        return await self._client._post("/knowledge-base/from-text", json={"content": text, **body})
 
     async def query(self, query: str, **body: Any) -> Any:
         return await self._client._post("/knowledge-base/query", json={"query": query, **body})

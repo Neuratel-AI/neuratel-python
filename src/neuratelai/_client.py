@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import httpx
 
 from ._base_client import (
@@ -9,6 +11,7 @@ from ._base_client import (
     AsyncAPIClient,
     SyncAPIClient,
 )
+from ._exceptions import AuthenticationError
 from .resources.agents import AgentsResource, AsyncAgentsResource
 from .resources.api_keys import APIKeysResource, AsyncAPIKeysResource
 from .resources.billing import AsyncBillingResource, BillingResource
@@ -21,12 +24,24 @@ from .resources.phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersReso
 from .resources.webhooks import AsyncWebhooksResource, WebhooksResource
 
 
+def _resolve_api_key(api_key: str | None) -> str:
+    key = api_key or os.environ.get("NEURATEL_API_KEY")
+    if not key:
+        raise AuthenticationError(
+            "No API key provided. Pass api_key= or set the NEURATEL_API_KEY environment variable."
+        )
+    return key
+
+
 class NeuratelAI:
     """Synchronous Neuratel API client.
 
     Usage::
 
+        client = NeuratelAI()  # reads NEURATEL_API_KEY from env
+        # or
         client = NeuratelAI(api_key="nk_live_...")
+
         agent = client.agents.create(name="Support Bot", brain={...})
         for agent in client.agents.list():
             print(agent["name"])
@@ -45,7 +60,7 @@ class NeuratelAI:
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str | None = None,
         *,
         base_url: str = DEFAULT_BASE_URL,
         timeout: float = DEFAULT_TIMEOUT,
@@ -53,7 +68,7 @@ class NeuratelAI:
         httpx_client: httpx.Client | None = None,
     ) -> None:
         self._base = SyncAPIClient(
-            api_key,
+            _resolve_api_key(api_key),
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -92,9 +107,9 @@ class AsyncNeuratelAI:
 
     Usage::
 
-        async with AsyncNeuratelAI(api_key="nk_live_...") as client:
+        async with AsyncNeuratelAI() as client:  # reads NEURATEL_API_KEY from env
             agent = await client.agents.create(name="Support Bot", brain={...})
-            async for agent in client.agents.list():
+            async for agent in await client.agents.list():
                 print(agent["name"])
     """
 
@@ -111,7 +126,7 @@ class AsyncNeuratelAI:
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str | None = None,
         *,
         base_url: str = DEFAULT_BASE_URL,
         timeout: float = DEFAULT_TIMEOUT,
@@ -119,7 +134,7 @@ class AsyncNeuratelAI:
         httpx_client: httpx.AsyncClient | None = None,
     ) -> None:
         self._base = AsyncAPIClient(
-            api_key,
+            _resolve_api_key(api_key),
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,

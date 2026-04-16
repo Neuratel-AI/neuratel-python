@@ -29,13 +29,11 @@ class CallsResource:
     def delete(
         self, call_id: str, *, delete_recording: bool = False, delete_transcript: bool = False
     ) -> None:
-        params: dict[str, bool] = {}
-        if delete_recording:
-            params["delete_recording"] = True
-        if delete_transcript:
-            params["delete_transcript"] = True
         self._client._request(
-            "DELETE", f"/calls/{call_id}", params=params or None, expect_body=False
+            "DELETE",
+            f"/calls/{call_id}",
+            params={"delete_recording": delete_recording, "delete_transcript": delete_transcript},
+            expect_body=False,
         )
 
     def outbound(self, **body: Any) -> Any:
@@ -82,13 +80,11 @@ class AsyncCallsResource:
     async def delete(
         self, call_id: str, *, delete_recording: bool = False, delete_transcript: bool = False
     ) -> None:
-        params: dict[str, bool] = {}
-        if delete_recording:
-            params["delete_recording"] = True
-        if delete_transcript:
-            params["delete_transcript"] = True
         await self._client._request(
-            "DELETE", f"/calls/{call_id}", params=params or None, expect_body=False
+            "DELETE",
+            f"/calls/{call_id}",
+            params={"delete_recording": delete_recording, "delete_transcript": delete_transcript},
+            expect_body=False,
         )
 
     async def outbound(self, **body: Any) -> Any:

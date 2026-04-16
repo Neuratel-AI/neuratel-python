@@ -74,16 +74,23 @@ class AsyncCallListsResource:
 
     async def bulk_import(self, call_list_id: str, file_path: str) -> Any:
         """Upload a CSV file to bulk import contacts."""
-        with open(file_path, "rb") as f:
-            response = await self._client._http.request(
-                "POST",
-                f"/lists/{call_list_id}/bulk-import",
-                files={"file": f},
-            )
+        import asyncio
+
+        file_bytes = await asyncio.to_thread(self._read_file, file_path)
+        response = await self._client._http.request(
+            "POST",
+            f"/lists/{call_list_id}/bulk-import",
+            files={"file": ("contacts.csv", file_bytes)},
+        )
         from .._base_client import _raise_for_status
 
         _raise_for_status(response)
         return response.json()
+
+    @staticmethod
+    def _read_file(path: str) -> bytes:
+        with open(path, "rb") as f:
+            return f.read()
 
     async def add_contact(self, call_list_id: str, **body: Any) -> Any:
         return await self._client._post(f"/lists/{call_list_id}/contacts", json=body)
