@@ -13,50 +13,50 @@ class CallsResource:
         self._client = client
 
     def list(self, *, skip: int = 0, limit: int = 20, **params: Any) -> SyncPage:
-        data = self._client._get("/calls", params={"skip": skip, "limit": limit, **params})
+        data = self._client._get("/voice-sessions", params={"skip": skip, "limit": limit, **params})
         return SyncPage(
             results=data["results"],
             metadata=PaginationMetadata.model_validate(data["metadata"]),
             client=self._client,
-            path="/calls",
+            path="/voice-sessions",
             params={"skip": skip, "limit": limit, **params},
         )
 
     def get(self, call_id: str, *, include: str | None = None) -> Any:
         params = {"include": include} if include else None
-        return self._client._get(f"/calls/{call_id}", params=params)
+        return self._client._get(f"/voice-sessions/{call_id}", params=params)
 
     def delete(
         self, call_id: str, *, delete_recording: bool = False, delete_transcript: bool = False
     ) -> None:
         self._client._request(
             "DELETE",
-            f"/calls/{call_id}",
+            f"/voice-sessions/{call_id}",
             params={"delete_recording": delete_recording, "delete_transcript": delete_transcript},
             expect_body=False,
         )
 
     def outbound(self, **body: Any) -> Any:
-        """Place a single outbound call. POST /v1/calls/outbound"""
-        return self._client._post("/calls/outbound", json=body)
+        """Place a single outbound call. POST /v1/voice-sessions/outbound"""
+        return self._client._post("/voice-sessions/outbound", json=body)
 
     def active(self) -> Any:
-        return self._client._get("/calls/active")
+        return self._client._get("/voice-sessions/active")
 
     def concurrency(self) -> Any:
-        return self._client._get("/calls/concurrency")
+        return self._client._get("/voice-sessions/concurrency")
 
     def hangup(self, call_id: str) -> Any:
-        return self._client._post(f"/calls/{call_id}/hangup")
+        return self._client._post(f"/voice-sessions/{call_id}/hangup")
 
     def listen(self, call_id: str) -> Any:
-        return self._client._post(f"/calls/{call_id}/listen")
+        return self._client._post(f"/voice-sessions/{call_id}/listen")
 
     def whisper(self, call_id: str) -> Any:
-        return self._client._post(f"/calls/{call_id}/whisper")
+        return self._client._post(f"/voice-sessions/{call_id}/whisper")
 
     def barge(self, call_id: str) -> Any:
-        return self._client._post(f"/calls/{call_id}/barge")
+        return self._client._post(f"/voice-sessions/{call_id}/barge")
 
 
 class AsyncCallsResource:
@@ -64,46 +64,46 @@ class AsyncCallsResource:
         self._client = client
 
     async def list(self, *, skip: int = 0, limit: int = 20, **params: Any) -> AsyncPage:
-        data = await self._client._get("/calls", params={"skip": skip, "limit": limit, **params})
+        data = await self._client._get("/voice-sessions", params={"skip": skip, "limit": limit, **params})
         return AsyncPage(
             results=data["results"],
             metadata=PaginationMetadata.model_validate(data["metadata"]),
             client=self._client,
-            path="/calls",
+            path="/voice-sessions",
             params={"skip": skip, "limit": limit, **params},
         )
 
     async def get(self, call_id: str, *, include: str | None = None) -> Any:
         params = {"include": include} if include else None
-        return await self._client._get(f"/calls/{call_id}", params=params)
+        return await self._client._get(f"/voice-sessions/{call_id}", params=params)
 
     async def delete(
         self, call_id: str, *, delete_recording: bool = False, delete_transcript: bool = False
     ) -> None:
         await self._client._request(
             "DELETE",
-            f"/calls/{call_id}",
+            f"/voice-sessions/{call_id}",
             params={"delete_recording": delete_recording, "delete_transcript": delete_transcript},
             expect_body=False,
         )
 
     async def outbound(self, **body: Any) -> Any:
-        return await self._client._post("/calls/outbound", json=body)
+        return await self._client._post("/voice-sessions/outbound", json=body)
 
     async def active(self) -> Any:
-        return await self._client._get("/calls/active")
+        return await self._client._get("/voice-sessions/active")
 
     async def concurrency(self) -> Any:
-        return await self._client._get("/calls/concurrency")
+        return await self._client._get("/voice-sessions/concurrency")
 
     async def hangup(self, call_id: str) -> Any:
-        return await self._client._post(f"/calls/{call_id}/hangup")
+        return await self._client._post(f"/voice-sessions/{call_id}/hangup")
 
     async def listen(self, call_id: str) -> Any:
-        return await self._client._post(f"/calls/{call_id}/listen")
+        return await self._client._post(f"/voice-sessions/{call_id}/listen")
 
     async def whisper(self, call_id: str) -> Any:
-        return await self._client._post(f"/calls/{call_id}/whisper")
+        return await self._client._post(f"/voice-sessions/{call_id}/whisper")
 
     async def barge(self, call_id: str) -> Any:
-        return await self._client._post(f"/calls/{call_id}/barge")
+        return await self._client._post(f"/voice-sessions/{call_id}/barge")

@@ -48,7 +48,8 @@ class NeuratelAI:
     """
 
     agents: AgentsResource
-    calls: CallsResource
+    calls: CallsResource  # backward-compat name; prefer `voice_sessions`
+    voice_sessions: CallsResource  # alias matching the /v1/voice-sessions surface
     phone_numbers: PhoneNumbersResource
     campaigns: CampaignsResource
     call_lists: CallListsResource
@@ -76,6 +77,7 @@ class NeuratelAI:
         )
         self.agents = AgentsResource(self._base)
         self.calls = CallsResource(self._base)
+        self.voice_sessions = self.calls  # alias — same instance, new name
         self.phone_numbers = PhoneNumbersResource(self._base)
         self.campaigns = CampaignsResource(self._base)
         self.call_lists = CallListsResource(self._base)
@@ -114,7 +116,8 @@ class AsyncNeuratelAI:
     """
 
     agents: AsyncAgentsResource
-    calls: AsyncCallsResource
+    calls: AsyncCallsResource  # backward-compat name; prefer `voice_sessions`
+    voice_sessions: AsyncCallsResource  # alias matching /v1/voice-sessions
     phone_numbers: AsyncPhoneNumbersResource
     campaigns: AsyncCampaignsResource
     call_lists: AsyncCallListsResource
@@ -142,6 +145,7 @@ class AsyncNeuratelAI:
         )
         self.agents = AsyncAgentsResource(self._base)
         self.calls = AsyncCallsResource(self._base)
+        self.voice_sessions = self.calls  # alias — same instance, new name
         self.phone_numbers = AsyncPhoneNumbersResource(self._base)
         self.campaigns = AsyncCampaignsResource(self._base)
         self.call_lists = AsyncCallListsResource(self._base)
