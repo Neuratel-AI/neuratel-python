@@ -8,12 +8,16 @@ if TYPE_CHECKING:
     from .._base_client import AsyncAPIClient, SyncAPIClient
 
 
-class CallsResource:
+class VoiceSessionsResource:
+    """`/v1/voice-sessions` — list, get, update, delete + supervisor actions."""
+
     def __init__(self, client: SyncAPIClient) -> None:
         self._client = client
 
     def list(self, *, skip: int = 0, limit: int = 20, **params: Any) -> SyncPage:
-        data = self._client._get("/voice-sessions", params={"skip": skip, "limit": limit, **params})
+        data = self._client._get(
+            "/voice-sessions", params={"skip": skip, "limit": limit, **params}
+        )
         return SyncPage(
             results=data["results"],
             metadata=PaginationMetadata.model_validate(data["metadata"]),
@@ -26,13 +30,33 @@ class CallsResource:
         params = {"include": include} if include else None
         return self._client._get(f"/voice-sessions/{call_id}", params=params)
 
+    def update(self, call_id: str, *, call_metadata: dict[str, Any]) -> Any:
+        """Merge keys into the row's `call_metadata` JSONB column.
+
+        Only `call_metadata` is mutable on this endpoint — operators attach
+        CRM IDs, ticket numbers, post-call notes after the call ends. Status,
+        timing, and other fields are auto-managed by the platform.
+        """
+        return self._client._request(
+            "PATCH",
+            f"/voice-sessions/{call_id}",
+            json={"call_metadata": call_metadata},
+        )
+
     def delete(
-        self, call_id: str, *, delete_recording: bool = False, delete_transcript: bool = False
+        self,
+        call_id: str,
+        *,
+        delete_recording: bool = False,
+        delete_transcript: bool = False,
     ) -> None:
         self._client._request(
             "DELETE",
             f"/voice-sessions/{call_id}",
-            params={"delete_recording": delete_recording, "delete_transcript": delete_transcript},
+            params={
+                "delete_recording": delete_recording,
+                "delete_transcript": delete_transcript,
+            },
             expect_body=False,
         )
 
@@ -59,12 +83,16 @@ class CallsResource:
         return self._client._post(f"/voice-sessions/{call_id}/barge")
 
 
-class AsyncCallsResource:
+class AsyncVoiceSessionsResource:
+    """Async sibling of `VoiceSessionsResource`."""
+
     def __init__(self, client: AsyncAPIClient) -> None:
         self._client = client
 
     async def list(self, *, skip: int = 0, limit: int = 20, **params: Any) -> AsyncPage:
-        data = await self._client._get("/voice-sessions", params={"skip": skip, "limit": limit, **params})
+        data = await self._client._get(
+            "/voice-sessions", params={"skip": skip, "limit": limit, **params}
+        )
         return AsyncPage(
             results=data["results"],
             metadata=PaginationMetadata.model_validate(data["metadata"]),
@@ -77,13 +105,27 @@ class AsyncCallsResource:
         params = {"include": include} if include else None
         return await self._client._get(f"/voice-sessions/{call_id}", params=params)
 
+    async def update(self, call_id: str, *, call_metadata: dict[str, Any]) -> Any:
+        return await self._client._request(
+            "PATCH",
+            f"/voice-sessions/{call_id}",
+            json={"call_metadata": call_metadata},
+        )
+
     async def delete(
-        self, call_id: str, *, delete_recording: bool = False, delete_transcript: bool = False
+        self,
+        call_id: str,
+        *,
+        delete_recording: bool = False,
+        delete_transcript: bool = False,
     ) -> None:
         await self._client._request(
             "DELETE",
             f"/voice-sessions/{call_id}",
-            params={"delete_recording": delete_recording, "delete_transcript": delete_transcript},
+            params={
+                "delete_recording": delete_recording,
+                "delete_transcript": delete_transcript,
+            },
             expect_body=False,
         )
 

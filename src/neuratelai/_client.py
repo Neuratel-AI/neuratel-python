@@ -16,7 +16,7 @@ from .resources.agents import AgentsResource, AsyncAgentsResource
 from .resources.api_keys import APIKeysResource, AsyncAPIKeysResource
 from .resources.billing import AsyncBillingResource, BillingResource
 from .resources.call_lists import AsyncCallListsResource, CallListsResource
-from .resources.calls import AsyncCallsResource, CallsResource
+from .resources.voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .resources.campaigns import AsyncCampaignsResource, CampaignsResource
 from .resources.integrations import AsyncIntegrationsResource, IntegrationsResource
 from .resources.knowledge_base import AsyncKnowledgeBaseResource, KnowledgeBaseResource
@@ -48,8 +48,7 @@ class NeuratelAI:
     """
 
     agents: AgentsResource
-    calls: CallsResource  # backward-compat name; prefer `voice_sessions`
-    voice_sessions: CallsResource  # alias matching the /v1/voice-sessions surface
+    voice_sessions: VoiceSessionsResource
     phone_numbers: PhoneNumbersResource
     campaigns: CampaignsResource
     call_lists: CallListsResource
@@ -76,8 +75,7 @@ class NeuratelAI:
             httpx_client=httpx_client,
         )
         self.agents = AgentsResource(self._base)
-        self.calls = CallsResource(self._base)
-        self.voice_sessions = self.calls  # alias — same instance, new name
+        self.voice_sessions = VoiceSessionsResource(self._base)
         self.phone_numbers = PhoneNumbersResource(self._base)
         self.campaigns = CampaignsResource(self._base)
         self.call_lists = CallListsResource(self._base)
@@ -116,8 +114,7 @@ class AsyncNeuratelAI:
     """
 
     agents: AsyncAgentsResource
-    calls: AsyncCallsResource  # backward-compat name; prefer `voice_sessions`
-    voice_sessions: AsyncCallsResource  # alias matching /v1/voice-sessions
+    voice_sessions: AsyncVoiceSessionsResource
     phone_numbers: AsyncPhoneNumbersResource
     campaigns: AsyncCampaignsResource
     call_lists: AsyncCallListsResource
@@ -144,8 +141,7 @@ class AsyncNeuratelAI:
             httpx_client=httpx_client,
         )
         self.agents = AsyncAgentsResource(self._base)
-        self.calls = AsyncCallsResource(self._base)
-        self.voice_sessions = self.calls  # alias — same instance, new name
+        self.voice_sessions = AsyncVoiceSessionsResource(self._base)
         self.phone_numbers = AsyncPhoneNumbersResource(self._base)
         self.campaigns = AsyncCampaignsResource(self._base)
         self.call_lists = AsyncCallListsResource(self._base)

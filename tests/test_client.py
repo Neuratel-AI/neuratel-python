@@ -17,7 +17,7 @@ from neuratelai._exceptions import APIError
 def test_client_instantiation() -> None:
     client = NeuratelAI(api_key="nk_test_key")
     assert client.agents is not None
-    assert client.calls is not None
+    assert client.voice_sessions is not None
     assert client.phone_numbers is not None
     assert client.campaigns is not None
     assert client.call_lists is not None
@@ -37,7 +37,7 @@ def test_backwards_compat_alias() -> None:
 def test_async_client_instantiation() -> None:
     client = AsyncNeuratelAI(api_key="nk_test_key")
     assert client.agents is not None
-    assert client.calls is not None
+    assert client.voice_sessions is not None
     assert client.phone_numbers is not None
     assert client.campaigns is not None
     assert client.call_lists is not None
