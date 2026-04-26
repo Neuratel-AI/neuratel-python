@@ -31,7 +31,7 @@ agent = client.agents.create(
 print(agent["id"])
 
 # Place an outbound call
-call = client.calls.outbound(
+call = client.voice_sessions.outbound(
     agent_id=agent["id"],
     to_number="+14155551234",
     number_id="your-number-uuid",
@@ -66,7 +66,7 @@ asyncio.run(main())
 | Resource | Methods |
 |----------|---------|
 | `agents` | `create`, `list`, `get`, `update`, `delete`, `duplicate`, `web_call`, `list_versions`, `get_version`, `restore_version` |
-| `calls` | `list`, `get`, `delete`, `outbound`, `active`, `concurrency`, `hangup`, `listen`, `whisper`, `barge` |
+| `voice_sessions` | `list`, `get`, `update`, `delete`, `outbound`, `active`, `concurrency`, `hangup`, `listen`, `whisper`, `barge` |
 | `phone_numbers` | `list`, `get`, `update`, `assign`, `unassign` |
 | `campaigns` | `create`, `list`, `get`, `update`, `delete`, `start`, `pause`, `stop`, `list_calls`, `get_call` |
 | `call_lists` | `create`, `list`, `get`, `update`, `delete`, `bulk_import`, `add_contact`, `list_contacts`, `update_contact`, `delete_contact` |
