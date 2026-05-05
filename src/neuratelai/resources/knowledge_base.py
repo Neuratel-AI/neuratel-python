@@ -60,7 +60,10 @@ class KnowledgeBaseResource:
     def list_for_agent(self, agent_id: str) -> Any:
         return self._client._get(f"/knowledge-base/agent/{agent_id}")
 
-    def assign_to_agent(self, agent_id: str, *, knowledge_base_ids: list[str]) -> Any:
+    def assign_to_agent(self, agent_id: str, *, knowledge_base_ids: Any) -> Any:
+        # `Any` (not `list[str]`) because mypy resolves the inner `list` as the
+        # class-level `def list()` method, not the builtin. Real typing lands
+        # in Phase 1D's _generated.py models.
         return self._client._put(
             f"/knowledge-base/agent/{agent_id}", json={"knowledge_base_ids": knowledge_base_ids}
         )
@@ -126,7 +129,7 @@ class AsyncKnowledgeBaseResource:
     async def list_for_agent(self, agent_id: str) -> Any:
         return await self._client._get(f"/knowledge-base/agent/{agent_id}")
 
-    async def assign_to_agent(self, agent_id: str, *, knowledge_base_ids: list[str]) -> Any:
+    async def assign_to_agent(self, agent_id: str, *, knowledge_base_ids: Any) -> Any:
         return await self._client._put(
             f"/knowledge-base/agent/{agent_id}", json={"knowledge_base_ids": knowledge_base_ids}
         )

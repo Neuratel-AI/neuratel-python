@@ -146,7 +146,7 @@ def _retry_delay(attempt: int, response: httpx.Response | None = None) -> float:
             return min(ratelimit_reset, MAX_RETRY_DELAY) * (1 + random() * _JITTER_FACTOR)
 
     # 3. Exponential backoff with symmetric jitter (±10%)
-    delay = min(INITIAL_RETRY_DELAY * (2**attempt), MAX_RETRY_DELAY)
+    delay: float = min(INITIAL_RETRY_DELAY * (2**attempt), MAX_RETRY_DELAY)
     return delay * (1 + (random() - 0.5) * _JITTER_FACTOR)
 
 

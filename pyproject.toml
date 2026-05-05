@@ -60,6 +60,13 @@ select = ["E", "F", "I", "UP"]
 [tool.mypy]
 python_version = "3.10"
 strict = true
+exclude = ["src/neuratelai/types/_generated\\.py$"]
+
+# Auto-generated Pydantic models from openapi.json — codegen artifacts
+# don't pass strict mode and are regenerated on each release.
+[[tool.mypy.overrides]]
+module = "neuratelai.types._generated"
+ignore_errors = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
