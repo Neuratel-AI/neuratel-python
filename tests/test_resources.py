@@ -169,9 +169,7 @@ def test_conversations_update_dynamic_variables_includes_replace_flag(
             "dynamic_variables": {"name": "Alice"},
         },
     )
-    client.conversations.update_dynamic_variables(
-        "conv_1", dynamic_variables={"name": "Alice"}
-    )
+    client.conversations.update_dynamic_variables("conv_1", dynamic_variables={"name": "Alice"})
 
 
 # ── DNC (new in 1C) ───────────────────────────────────────────────────────
@@ -193,9 +191,7 @@ def test_dnc_add_entry(httpx_mock: HTTPXMock, client: NeuratelAI) -> None:
         json={"id": "dnc_1", "phone": "+12125551234"},
         match_json={"phone": "+12125551234", "reason": "customer requested"},
     )
-    out = client.dnc.add_entry(
-        phone="+12125551234", reason="customer requested"
-    )
+    out = client.dnc.add_entry(phone="+12125551234", reason="customer requested")
     assert out["id"] == "dnc_1"
 
 
@@ -208,9 +204,7 @@ def test_dnc_update_settings_uses_canonical_field_names(
         json={"protection_enabled": True, "auto_add_inbound_optouts": True},
         match_json={"protection_enabled": True, "auto_add_inbound_optouts": True},
     )
-    client.dnc.update_settings(
-        protection_enabled=True, auto_add_inbound_optouts=True
-    )
+    client.dnc.update_settings(protection_enabled=True, auto_add_inbound_optouts=True)
 
 
 # ── Analytics (new in 1C) ─────────────────────────────────────────────────
@@ -250,9 +244,7 @@ def test_401_raises_AuthenticationError(httpx_mock: HTTPXMock, client: NeuratelA
 
 def test_429_raises_RateLimitError(httpx_mock: HTTPXMock) -> None:
     # Backoff retries 429 by default; cap retries to surface the error fast.
-    fast_client = NeuratelAI(
-        api_key="nk_test", base_url="https://api.test/v1", max_retries=0
-    )
+    fast_client = NeuratelAI(api_key="nk_test", base_url="https://api.test/v1", max_retries=0)
     httpx_mock.add_response(
         url="https://api.test/v1/agents?skip=0&limit=20",
         status_code=429,
@@ -264,9 +256,7 @@ def test_429_raises_RateLimitError(httpx_mock: HTTPXMock) -> None:
 
 
 def test_500_raises_APIError(httpx_mock: HTTPXMock) -> None:
-    fast_client = NeuratelAI(
-        api_key="nk_test", base_url="https://api.test/v1", max_retries=0
-    )
+    fast_client = NeuratelAI(api_key="nk_test", base_url="https://api.test/v1", max_retries=0)
     httpx_mock.add_response(
         url="https://api.test/v1/billing/balance",
         status_code=500,
@@ -284,9 +274,7 @@ async def test_async_voice_sessions_get(httpx_mock: HTTPXMock) -> None:
         url="https://api.test/v1/voice-sessions/vs_async",
         json={"id": "vs_async", "analysis_status": "pending"},
     )
-    async with AsyncNeuratelAI(
-        api_key="nk_test", base_url="https://api.test/v1"
-    ) as client:
+    async with AsyncNeuratelAI(api_key="nk_test", base_url="https://api.test/v1") as client:
         out = await client.voice_sessions.get("vs_async")
     assert out["analysis_status"] == "pending"
 
@@ -296,8 +284,6 @@ async def test_async_dnc_check(httpx_mock: HTTPXMock) -> None:
         url="https://api.test/v1/dnc/check?phone=%2B12125551234",
         json={"blocked": False},
     )
-    async with AsyncNeuratelAI(
-        api_key="nk_test", base_url="https://api.test/v1"
-    ) as client:
+    async with AsyncNeuratelAI(api_key="nk_test", base_url="https://api.test/v1") as client:
         out = await client.dnc.check("+12125551234")
     assert out["blocked"] is False

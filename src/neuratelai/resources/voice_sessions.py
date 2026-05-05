@@ -15,9 +15,7 @@ class VoiceSessionsResource:
         self._client = client
 
     def list(self, *, skip: int = 0, limit: int = 20, **params: Any) -> SyncPage:
-        data = self._client._get(
-            "/voice-sessions", params={"skip": skip, "limit": limit, **params}
-        )
+        data = self._client._get("/voice-sessions", params={"skip": skip, "limit": limit, **params})
         return SyncPage(
             results=data["results"],
             metadata=PaginationMetadata.model_validate(data["metadata"]),

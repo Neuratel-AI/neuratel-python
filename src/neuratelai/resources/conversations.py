@@ -51,9 +51,7 @@ class ConversationsResource:
             params["since"] = since
         if before is not None:
             params["before"] = before
-        return self._client._get(
-            f"/conversations/{conversation_id}/messages", params=params
-        )
+        return self._client._get(f"/conversations/{conversation_id}/messages", params=params)
 
     def send_message(
         self,
@@ -69,9 +67,7 @@ class ConversationsResource:
             payload["media_urls"] = media_urls
         if client_temp_id is not None:
             payload["client_temp_id"] = client_temp_id
-        return self._client._post(
-            f"/conversations/{conversation_id}/messages", json=payload
-        )
+        return self._client._post(f"/conversations/{conversation_id}/messages", json=payload)
 
     def mark_read(self, conversation_id: str) -> Any:
         return self._client._post(f"/conversations/{conversation_id}/read")
@@ -89,9 +85,7 @@ class ConversationsResource:
             params["since"] = since
         if before is not None:
             params["before"] = before
-        return self._client._get(
-            f"/conversations/{conversation_id}/timeline", params=params
-        )
+        return self._client._get(f"/conversations/{conversation_id}/timeline", params=params)
 
     def update_dynamic_variables(
         self,
@@ -103,9 +97,7 @@ class ConversationsResource:
         body: dict[str, Any] = {"replace": replace}
         if dynamic_variables is not None:
             body["dynamic_variables"] = dynamic_variables
-        return self._client._patch(
-            f"/conversations/{conversation_id}/dynamic_variables", json=body
-        )
+        return self._client._patch(f"/conversations/{conversation_id}/dynamic_variables", json=body)
 
     def analytics_dashboard(
         self,
@@ -127,9 +119,7 @@ class ConversationsResource:
             params["agent_id"] = agent_id
         if interval is not None:
             params["interval"] = interval
-        return self._client._get(
-            "/conversations/analytics/dashboard", params=params
-        )
+        return self._client._get("/conversations/analytics/dashboard", params=params)
 
 
 class AsyncConversationsResource:
@@ -168,9 +158,7 @@ class AsyncConversationsResource:
             params["since"] = since
         if before is not None:
             params["before"] = before
-        return await self._client._get(
-            f"/conversations/{conversation_id}/messages", params=params
-        )
+        return await self._client._get(f"/conversations/{conversation_id}/messages", params=params)
 
     async def send_message(
         self,
@@ -186,9 +174,7 @@ class AsyncConversationsResource:
             payload["media_urls"] = media_urls
         if client_temp_id is not None:
             payload["client_temp_id"] = client_temp_id
-        return await self._client._post(
-            f"/conversations/{conversation_id}/messages", json=payload
-        )
+        return await self._client._post(f"/conversations/{conversation_id}/messages", json=payload)
 
     async def mark_read(self, conversation_id: str) -> Any:
         return await self._client._post(f"/conversations/{conversation_id}/read")
@@ -206,9 +192,7 @@ class AsyncConversationsResource:
             params["since"] = since
         if before is not None:
             params["before"] = before
-        return await self._client._get(
-            f"/conversations/{conversation_id}/timeline", params=params
-        )
+        return await self._client._get(f"/conversations/{conversation_id}/timeline", params=params)
 
     async def update_dynamic_variables(
         self,
@@ -244,6 +228,4 @@ class AsyncConversationsResource:
             params["agent_id"] = agent_id
         if interval is not None:
             params["interval"] = interval
-        return await self._client._get(
-            "/conversations/analytics/dashboard", params=params
-        )
+        return await self._client._get("/conversations/analytics/dashboard", params=params)

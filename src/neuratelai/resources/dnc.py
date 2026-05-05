@@ -20,9 +20,7 @@ class DNCResource:
     def check(self, phone: str) -> Any:
         return self._client._get("/dnc/check", params={"phone": phone})
 
-    def list_entries(
-        self, *, source: str | None = None, limit: int = 100
-    ) -> Any:
+    def list_entries(self, *, source: str | None = None, limit: int = 100) -> Any:
         params: dict[str, Any] = {"limit": limit}
         if source is not None:
             params["source"] = source
@@ -71,9 +69,7 @@ class AsyncDNCResource:
     async def check(self, phone: str) -> Any:
         return await self._client._get("/dnc/check", params={"phone": phone})
 
-    async def list_entries(
-        self, *, source: str | None = None, limit: int = 100
-    ) -> Any:
+    async def list_entries(self, *, source: str | None = None, limit: int = 100) -> Any:
         params: dict[str, Any] = {"limit": limit}
         if source is not None:
             params["source"] = source
