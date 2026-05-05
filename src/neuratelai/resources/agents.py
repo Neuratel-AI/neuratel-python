@@ -51,6 +51,19 @@ class AgentsResource:
     def restore_version(self, agent_id: str, version: int) -> Any:
         return self._client._post(f"/agents/{agent_id}/versions/{version}/restore")
 
+    def templates(self) -> Any:
+        """List the platform's pre-built agent templates (read-only catalog)."""
+        return self._client._get("/agents/templates")
+
+    def required_variables(self, agent_id: str) -> Any:
+        """List the {{variable}} placeholders an agent requires at call time.
+
+        Returns the system catalog plus any user-defined names the agent's
+        prompt references — useful for validating dynamic_variables payloads
+        before placing an outbound call.
+        """
+        return self._client._get(f"/agents/{agent_id}/required-variables")
+
 
 class AsyncAgentsResource:
     def __init__(self, client: AsyncAPIClient) -> None:
@@ -93,3 +106,11 @@ class AsyncAgentsResource:
 
     async def restore_version(self, agent_id: str, version: int) -> Any:
         return await self._client._post(f"/agents/{agent_id}/versions/{version}/restore")
+
+    async def templates(self) -> Any:
+        """List the platform's pre-built agent templates (read-only catalog)."""
+        return await self._client._get("/agents/templates")
+
+    async def required_variables(self, agent_id: str) -> Any:
+        """List the {{variable}} placeholders an agent requires at call time."""
+        return await self._client._get(f"/agents/{agent_id}/required-variables")

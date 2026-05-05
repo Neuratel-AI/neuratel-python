@@ -13,11 +13,14 @@ from ._base_client import (
 )
 from ._exceptions import AuthenticationError
 from .resources.agents import AgentsResource, AsyncAgentsResource
+from .resources.analytics import AnalyticsResource, AsyncAnalyticsResource
 from .resources.api_keys import APIKeysResource, AsyncAPIKeysResource
 from .resources.billing import AsyncBillingResource, BillingResource
 from .resources.call_lists import AsyncCallListsResource, CallListsResource
 from .resources.voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .resources.campaigns import AsyncCampaignsResource, CampaignsResource
+from .resources.conversations import AsyncConversationsResource, ConversationsResource
+from .resources.dnc import AsyncDNCResource, DNCResource
 from .resources.integrations import AsyncIntegrationsResource, IntegrationsResource
 from .resources.knowledge_base import AsyncKnowledgeBaseResource, KnowledgeBaseResource
 from .resources.phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersResource
@@ -49,6 +52,7 @@ class NeuratelAI:
 
     agents: AgentsResource
     voice_sessions: VoiceSessionsResource
+    conversations: ConversationsResource
     phone_numbers: PhoneNumbersResource
     campaigns: CampaignsResource
     call_lists: CallListsResource
@@ -57,6 +61,8 @@ class NeuratelAI:
     billing: BillingResource
     api_keys: APIKeysResource
     integrations: IntegrationsResource
+    dnc: DNCResource
+    analytics: AnalyticsResource
 
     def __init__(
         self,
@@ -76,6 +82,7 @@ class NeuratelAI:
         )
         self.agents = AgentsResource(self._base)
         self.voice_sessions = VoiceSessionsResource(self._base)
+        self.conversations = ConversationsResource(self._base)
         self.phone_numbers = PhoneNumbersResource(self._base)
         self.campaigns = CampaignsResource(self._base)
         self.call_lists = CallListsResource(self._base)
@@ -84,6 +91,8 @@ class NeuratelAI:
         self.billing = BillingResource(self._base)
         self.api_keys = APIKeysResource(self._base)
         self.integrations = IntegrationsResource(self._base)
+        self.dnc = DNCResource(self._base)
+        self.analytics = AnalyticsResource(self._base)
 
     def close(self) -> None:
         self._base.close()
@@ -115,6 +124,7 @@ class AsyncNeuratelAI:
 
     agents: AsyncAgentsResource
     voice_sessions: AsyncVoiceSessionsResource
+    conversations: AsyncConversationsResource
     phone_numbers: AsyncPhoneNumbersResource
     campaigns: AsyncCampaignsResource
     call_lists: AsyncCallListsResource
@@ -123,6 +133,8 @@ class AsyncNeuratelAI:
     billing: AsyncBillingResource
     api_keys: AsyncAPIKeysResource
     integrations: AsyncIntegrationsResource
+    dnc: AsyncDNCResource
+    analytics: AsyncAnalyticsResource
 
     def __init__(
         self,
@@ -142,6 +154,7 @@ class AsyncNeuratelAI:
         )
         self.agents = AsyncAgentsResource(self._base)
         self.voice_sessions = AsyncVoiceSessionsResource(self._base)
+        self.conversations = AsyncConversationsResource(self._base)
         self.phone_numbers = AsyncPhoneNumbersResource(self._base)
         self.campaigns = AsyncCampaignsResource(self._base)
         self.call_lists = AsyncCallListsResource(self._base)
@@ -150,6 +163,8 @@ class AsyncNeuratelAI:
         self.billing = AsyncBillingResource(self._base)
         self.api_keys = AsyncAPIKeysResource(self._base)
         self.integrations = AsyncIntegrationsResource(self._base)
+        self.dnc = AsyncDNCResource(self._base)
+        self.analytics = AsyncAnalyticsResource(self._base)
 
     async def aclose(self) -> None:
         await self._base.aclose()
