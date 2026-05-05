@@ -112,7 +112,9 @@ def test_voice_sessions_outbound(httpx_mock: HTTPXMock, client: NeuratelAI) -> N
     assert out["call_id"] == "vs_1"
 
 
-def test_voice_sessions_get_includes_analysis_fields(httpx_mock: HTTPXMock, client: NeuratelAI) -> None:
+def test_voice_sessions_get_includes_analysis_fields(
+    httpx_mock: HTTPXMock, client: NeuratelAI
+) -> None:
     httpx_mock.add_response(
         url="https://api.test/v1/voice-sessions/vs_1",
         json={
@@ -142,7 +144,9 @@ def test_conversations_list_passes_filters(httpx_mock: HTTPXMock, client: Neurat
     assert "results" in out
 
 
-def test_conversations_send_message_uses_body_field(httpx_mock: HTTPXMock, client: NeuratelAI) -> None:
+def test_conversations_send_message_uses_body_field(
+    httpx_mock: HTTPXMock, client: NeuratelAI
+) -> None:
     httpx_mock.add_response(
         url="https://api.test/v1/conversations/conv_1/messages",
         method="POST",
@@ -195,7 +199,9 @@ def test_dnc_add_entry(httpx_mock: HTTPXMock, client: NeuratelAI) -> None:
     assert out["id"] == "dnc_1"
 
 
-def test_dnc_update_settings_uses_canonical_field_names(httpx_mock: HTTPXMock, client: NeuratelAI) -> None:
+def test_dnc_update_settings_uses_canonical_field_names(
+    httpx_mock: HTTPXMock, client: NeuratelAI
+) -> None:
     httpx_mock.add_response(
         url="https://api.test/v1/dnc/settings",
         method="PATCH",

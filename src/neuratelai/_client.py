@@ -17,13 +17,13 @@ from .resources.analytics import AnalyticsResource, AsyncAnalyticsResource
 from .resources.api_keys import APIKeysResource, AsyncAPIKeysResource
 from .resources.billing import AsyncBillingResource, BillingResource
 from .resources.call_lists import AsyncCallListsResource, CallListsResource
-from .resources.voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .resources.campaigns import AsyncCampaignsResource, CampaignsResource
 from .resources.conversations import AsyncConversationsResource, ConversationsResource
 from .resources.dnc import AsyncDNCResource, DNCResource
 from .resources.integrations import AsyncIntegrationsResource, IntegrationsResource
 from .resources.knowledge_base import AsyncKnowledgeBaseResource, KnowledgeBaseResource
 from .resources.phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersResource
+from .resources.voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .resources.webhooks import AsyncWebhooksResource, WebhooksResource
 
 

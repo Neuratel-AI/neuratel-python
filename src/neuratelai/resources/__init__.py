@@ -1,12 +1,15 @@
 from .agents import AgentsResource, AsyncAgentsResource
+from .analytics import AnalyticsResource, AsyncAnalyticsResource
 from .api_keys import APIKeysResource, AsyncAPIKeysResource
 from .billing import AsyncBillingResource, BillingResource
 from .call_lists import AsyncCallListsResource, CallListsResource
-from .voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .campaigns import AsyncCampaignsResource, CampaignsResource
+from .conversations import AsyncConversationsResource, ConversationsResource
+from .dnc import AsyncDNCResource, DNCResource
 from .integrations import AsyncIntegrationsResource, IntegrationsResource
 from .knowledge_base import AsyncKnowledgeBaseResource, KnowledgeBaseResource
 from .phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersResource
+from .voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .webhooks import AsyncWebhooksResource, WebhooksResource
 
 __all__ = [
@@ -14,6 +17,8 @@ __all__ = [
     "AsyncAgentsResource",
     "VoiceSessionsResource",
     "AsyncVoiceSessionsResource",
+    "ConversationsResource",
+    "AsyncConversationsResource",
     "PhoneNumbersResource",
     "AsyncPhoneNumbersResource",
     "CampaignsResource",
@@ -30,4 +35,8 @@ __all__ = [
     "AsyncAPIKeysResource",
     "IntegrationsResource",
     "AsyncIntegrationsResource",
+    "DNCResource",
+    "AsyncDNCResource",
+    "AnalyticsResource",
+    "AsyncAnalyticsResource",
 ]
