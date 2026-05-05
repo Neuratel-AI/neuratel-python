@@ -1,6 +1,6 @@
 [project]
 name = "neuratelai"
-version = "0.1.2"
+version = "0.2.0"
 description = "Official Python SDK for the Neuratel API"
 readme = "README.md"
 license = { text = "MIT" }
