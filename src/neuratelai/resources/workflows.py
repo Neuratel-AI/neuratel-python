@@ -161,9 +161,7 @@ class AsyncWorkflowsResource:
         Raises:
             APIError: If the request fails.
         """
-        data = await self._client._get(
-            "/workflows", params={"skip": skip, "limit": limit}
-        )
+        data = await self._client._get("/workflows", params={"skip": skip, "limit": limit})
         return AsyncPage(
             results=data["results"],
             metadata=PaginationMetadata.model_validate(data["metadata"]),

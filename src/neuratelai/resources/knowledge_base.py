@@ -324,9 +324,7 @@ class AsyncKnowledgeBaseResource:
         Raises:
             APIError: If the request fails.
         """
-        return await self._client._post(
-            "/knowledge-base/from-text", json={"content": text, **body}
-        )
+        return await self._client._post("/knowledge-base/from-text", json={"content": text, **body})
 
     async def query(self, query: str, **body: Any) -> Any:
         """Run a semantic query against the knowledge base.
@@ -342,9 +340,7 @@ class AsyncKnowledgeBaseResource:
         Raises:
             APIError: If the request fails.
         """
-        return await self._client._post(
-            "/knowledge-base/query", json={"query": query, **body}
-        )
+        return await self._client._post("/knowledge-base/query", json={"query": query, **body})
 
     async def list_for_agent(self, agent_id: str) -> Any:
         """List KB sources currently bound to an agent.

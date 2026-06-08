@@ -102,9 +102,7 @@ class WhatsappResource:
 
     # ---- Per-account sub-resources ----
 
-    def list_templates(
-        self, phone_number_id: str, *, status: str | None = None
-    ) -> Any:
+    def list_templates(self, phone_number_id: str, *, status: str | None = None) -> Any:
         """List message templates for a WhatsApp account.
 
         Args:
@@ -119,9 +117,7 @@ class WhatsappResource:
             APIError: If the request fails.
         """
         params = {"status": status} if status else None
-        return self._client._get(
-            f"/whatsapp/accounts/{phone_number_id}/templates", params=params
-        )
+        return self._client._get(f"/whatsapp/accounts/{phone_number_id}/templates", params=params)
 
     def check_call_permission(self, phone_number_id: str, *, user_wa_id: str) -> Any:
         """Check whether a WhatsApp user has granted call permissions.
@@ -155,9 +151,7 @@ class WhatsappResource:
         Raises:
             APIError: If the request fails.
         """
-        return self._client._get(
-            f"/whatsapp/accounts/{phone_number_id}/calls/{intent_id}"
-        )
+        return self._client._get(f"/whatsapp/accounts/{phone_number_id}/calls/{intent_id}")
 
     def verify_account(self, phone_number_id: str) -> Any:
         """Run a health/verification check on a WhatsApp account.
@@ -346,9 +340,7 @@ class AsyncWhatsappResource:
         Raises:
             APIError: If the request fails.
         """
-        return await self._client._patch(
-            f"/whatsapp/accounts/{phone_number_id}", json=body
-        )
+        return await self._client._patch(f"/whatsapp/accounts/{phone_number_id}", json=body)
 
     async def delete_account(self, phone_number_id: str) -> None:
         """Delete a WhatsApp account.
@@ -363,9 +355,7 @@ class AsyncWhatsappResource:
 
     # ---- Per-account sub-resources ----
 
-    async def list_templates(
-        self, phone_number_id: str, *, status: str | None = None
-    ) -> Any:
+    async def list_templates(self, phone_number_id: str, *, status: str | None = None) -> Any:
         """List message templates for a WhatsApp account.
 
         Args:
@@ -384,9 +374,7 @@ class AsyncWhatsappResource:
             f"/whatsapp/accounts/{phone_number_id}/templates", params=params
         )
 
-    async def check_call_permission(
-        self, phone_number_id: str, *, user_wa_id: str
-    ) -> Any:
+    async def check_call_permission(self, phone_number_id: str, *, user_wa_id: str) -> Any:
         """Check whether a WhatsApp user has granted call permissions.
 
         Args:
@@ -417,9 +405,7 @@ class AsyncWhatsappResource:
         Raises:
             APIError: If the request fails.
         """
-        return await self._client._get(
-            f"/whatsapp/accounts/{phone_number_id}/calls/{intent_id}"
-        )
+        return await self._client._get(f"/whatsapp/accounts/{phone_number_id}/calls/{intent_id}")
 
     async def verify_account(self, phone_number_id: str) -> Any:
         """Run a health/verification check on a WhatsApp account.
@@ -433,9 +419,7 @@ class AsyncWhatsappResource:
         Raises:
             APIError: If the request fails.
         """
-        return await self._client._post(
-            f"/whatsapp/accounts/{phone_number_id}/verify"
-        )
+        return await self._client._post(f"/whatsapp/accounts/{phone_number_id}/verify")
 
     # ---- Outbound ----
 
