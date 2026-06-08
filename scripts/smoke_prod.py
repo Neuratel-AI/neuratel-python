@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import os
 import sys
-import time
 
 from neuratelai import AsyncNeuratelAI
 
@@ -119,7 +118,7 @@ async def run() -> None:
                     await client.knowledge_base.get(kbs[0]["id"])
                     _ok(f"knowledge_base.get('{kbs[0]['id'][:12]}…')")
                 except Exception as e:
-                    _fail(f"knowledge_base.get()", getattr(e, "status_code", 0), str(e))
+                    _fail("knowledge_base.get()", getattr(e, "status_code", 0), str(e))
         except Exception as e:
             _fail("knowledge_base.list()", getattr(e, "status_code", 0), str(e))
 
