@@ -25,6 +25,8 @@ from .resources.knowledge_base import AsyncKnowledgeBaseResource, KnowledgeBaseR
 from .resources.phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersResource
 from .resources.voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .resources.webhooks import AsyncWebhooksResource, WebhooksResource
+from .resources.whatsapp import AsyncWhatsappResource, WhatsappResource
+from .resources.workflows import AsyncWorkflowsResource, WorkflowsResource
 
 
 def _resolve_api_key(api_key: str | None) -> str:
@@ -63,6 +65,8 @@ class NeuratelAI:
     integrations: IntegrationsResource
     dnc: DNCResource
     analytics: AnalyticsResource
+    whatsapp: WhatsappResource
+    workflows: WorkflowsResource
 
     def __init__(
         self,
@@ -93,6 +97,8 @@ class NeuratelAI:
         self.integrations = IntegrationsResource(self._base)
         self.dnc = DNCResource(self._base)
         self.analytics = AnalyticsResource(self._base)
+        self.whatsapp = WhatsappResource(self._base)
+        self.workflows = WorkflowsResource(self._base)
 
     def close(self) -> None:
         self._base.close()
@@ -135,6 +141,8 @@ class AsyncNeuratelAI:
     integrations: AsyncIntegrationsResource
     dnc: AsyncDNCResource
     analytics: AsyncAnalyticsResource
+    whatsapp: AsyncWhatsappResource
+    workflows: AsyncWorkflowsResource
 
     def __init__(
         self,
@@ -165,6 +173,8 @@ class AsyncNeuratelAI:
         self.integrations = AsyncIntegrationsResource(self._base)
         self.dnc = AsyncDNCResource(self._base)
         self.analytics = AsyncAnalyticsResource(self._base)
+        self.whatsapp = AsyncWhatsappResource(self._base)
+        self.workflows = AsyncWorkflowsResource(self._base)
 
     async def aclose(self) -> None:
         await self._base.aclose()

@@ -11,6 +11,8 @@ from .knowledge_base import AsyncKnowledgeBaseResource, KnowledgeBaseResource
 from .phone_numbers import AsyncPhoneNumbersResource, PhoneNumbersResource
 from .voice_sessions import AsyncVoiceSessionsResource, VoiceSessionsResource
 from .webhooks import AsyncWebhooksResource, WebhooksResource
+from .whatsapp import AsyncWhatsappResource, WhatsappResource
+from .workflows import AsyncWorkflowsResource, WorkflowsResource
 
 __all__ = [
     "AgentsResource",
@@ -39,4 +41,8 @@ __all__ = [
     "AsyncDNCResource",
     "AnalyticsResource",
     "AsyncAnalyticsResource",
+    "WhatsappResource",
+    "AsyncWhatsappResource",
+    "WorkflowsResource",
+    "AsyncWorkflowsResource",
 ]

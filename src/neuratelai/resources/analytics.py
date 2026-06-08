@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 
 class AnalyticsResource:
+    """Sync client for the combined voice + chat analytics dashboard."""
+
     def __init__(self, client: SyncAPIClient) -> None:
         self._client = client
 
@@ -27,6 +29,25 @@ class AnalyticsResource:
         direction: str | None = None,
         interval: str | None = None,
     ) -> Any:
+        """Fetch the combined analytics dashboard for an organization.
+
+        Args:
+            start_date: ISO-8601 lower bound (inclusive) for the date range.
+            end_date: ISO-8601 upper bound (inclusive) for the date range.
+            agent_id: Optional filter to a single agent.
+            channel: Optional channel filter (e.g. ``"voice"``, ``"sms"``,
+                ``"whatsapp"``).
+            direction: Optional direction filter (e.g. ``"inbound"``,
+                ``"outbound"``).
+            interval: Optional bucket size for time-series data
+                (e.g. ``"hour"``, ``"day"``, ``"week"``).
+
+        Returns:
+            The dashboard payload (totals + time-series).
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {}
         if start_date is not None:
             params["start_date"] = start_date
@@ -44,6 +65,8 @@ class AnalyticsResource:
 
 
 class AsyncAnalyticsResource:
+    """Async sibling of :class:`AnalyticsResource`."""
+
     def __init__(self, client: AsyncAPIClient) -> None:
         self._client = client
 
@@ -57,6 +80,22 @@ class AsyncAnalyticsResource:
         direction: str | None = None,
         interval: str | None = None,
     ) -> Any:
+        """Fetch the combined analytics dashboard for an organization.
+
+        Args:
+            start_date: ISO-8601 lower bound (inclusive) for the date range.
+            end_date: ISO-8601 upper bound (inclusive) for the date range.
+            agent_id: Optional filter to a single agent.
+            channel: Optional channel filter.
+            direction: Optional direction filter.
+            interval: Optional bucket size for time-series data.
+
+        Returns:
+            The dashboard payload (totals + time-series).
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {}
         if start_date is not None:
             params["start_date"] = start_date

@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 
 
 class ConversationsResource:
+    """`/v1/conversations` — threads, messages, timelines, dynamic variables."""
+
     def __init__(self, client: SyncAPIClient) -> None:
         self._client = client
 
@@ -27,6 +29,22 @@ class ConversationsResource:
         skip: int = 0,
         limit: int = 20,
     ) -> Any:
+        """List conversations in the organization.
+
+        Args:
+            channel: Optional channel filter (e.g. ``"sms"``,
+                ``"whatsapp"``).
+            status: Optional status filter (e.g. ``"open"``,
+                ``"closed"``).
+            skip: Number of items to skip for pagination.
+            limit: Maximum number of items per page.
+
+        Returns:
+            A page of conversation summaries.
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {"skip": skip, "limit": limit}
         if channel is not None:
             params["channel"] = channel
@@ -35,6 +53,18 @@ class ConversationsResource:
         return self._client._get("/conversations", params=params)
 
     def get(self, conversation_id: str) -> Any:
+        """Fetch a single conversation by ID.
+
+        Args:
+            conversation_id: The conversation identifier.
+
+        Returns:
+            The conversation record (contact, channel, status, last
+            message preview, etc.).
+
+        Raises:
+            APIError: If the request fails.
+        """
         return self._client._get(f"/conversations/{conversation_id}")
 
     def list_messages(
@@ -46,6 +76,21 @@ class ConversationsResource:
         since: str | None = None,
         before: str | None = None,
     ) -> Any:
+        """List messages in a conversation, oldest first.
+
+        Args:
+            conversation_id: The conversation identifier.
+            skip: Number of items to skip for pagination.
+            limit: Maximum number of items per page.
+            since: Optional ISO-8601 lower bound on message timestamp.
+            before: Optional ISO-8601 upper bound on message timestamp.
+
+        Returns:
+            A page of message records.
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {"skip": skip, "limit": limit}
         if since is not None:
             params["since"] = since
@@ -62,6 +107,22 @@ class ConversationsResource:
         client_temp_id: str | None = None,
         **extra: Any,
     ) -> Any:
+        """Send a message in a conversation (as the agent / from the API).
+
+        Args:
+            conversation_id: The conversation identifier.
+            body: Message body text.
+            media_urls: Optional list of media URLs to attach.
+            client_temp_id: Optional client-generated ID for idempotency /
+                dedupe.
+            **extra: Additional fields forwarded to the API.
+
+        Returns:
+            The created message record.
+
+        Raises:
+            APIError: If the request fails.
+        """
         payload: dict[str, Any] = {"body": body, **extra}
         if media_urls is not None:
             payload["media_urls"] = media_urls
@@ -70,6 +131,17 @@ class ConversationsResource:
         return self._client._post(f"/conversations/{conversation_id}/messages", json=payload)
 
     def mark_read(self, conversation_id: str) -> Any:
+        """Mark all messages in a conversation as read.
+
+        Args:
+            conversation_id: The conversation identifier.
+
+        Returns:
+            The updated conversation record.
+
+        Raises:
+            APIError: If the request fails.
+        """
         return self._client._post(f"/conversations/{conversation_id}/read")
 
     def timeline(
@@ -80,6 +152,21 @@ class ConversationsResource:
         since: str | None = None,
         before: str | None = None,
     ) -> Any:
+        """Fetch the interleaved timeline of messages + system events.
+
+        Args:
+            conversation_id: The conversation identifier.
+            limit: Maximum number of events to return.
+            since: Optional ISO-8601 lower bound on event timestamp.
+            before: Optional ISO-8601 upper bound on event timestamp.
+
+        Returns:
+            A list of timeline events (inbound/outbound messages, status
+            changes, hand-offs, etc.).
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {"limit": limit}
         if since is not None:
             params["since"] = since
@@ -94,6 +181,21 @@ class ConversationsResource:
         dynamic_variables: dict[str, Any] | None = None,
         replace: bool = False,
     ) -> Any:
+        """Merge (or replace) the conversation's dynamic variables mid-call.
+
+        Args:
+            conversation_id: The conversation identifier.
+            dynamic_variables: Variables to write. If ``replace`` is
+                ``False``, these keys are merged into the existing map.
+            replace: If ``True``, the existing variables are fully
+                replaced. Defaults to ``False`` (merge).
+
+        Returns:
+            The updated conversation record.
+
+        Raises:
+            APIError: If the request fails.
+        """
         body: dict[str, Any] = {"replace": replace}
         if dynamic_variables is not None:
             body["dynamic_variables"] = dynamic_variables
@@ -108,6 +210,21 @@ class ConversationsResource:
         agent_id: str | None = None,
         interval: str | None = None,
     ) -> Any:
+        """Fetch the chat-conversations analytics dashboard.
+
+        Args:
+            start_date: ISO-8601 lower bound (inclusive).
+            end_date: ISO-8601 upper bound (inclusive).
+            channel: Optional channel filter.
+            agent_id: Optional agent filter.
+            interval: Optional bucket size for time-series data.
+
+        Returns:
+            The dashboard payload.
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {}
         if start_date is not None:
             params["start_date"] = start_date
@@ -123,6 +240,8 @@ class ConversationsResource:
 
 
 class AsyncConversationsResource:
+    """Async sibling of :class:`ConversationsResource`."""
+
     def __init__(self, client: AsyncAPIClient) -> None:
         self._client = client
 
@@ -134,6 +253,20 @@ class AsyncConversationsResource:
         skip: int = 0,
         limit: int = 20,
     ) -> Any:
+        """List conversations in the organization.
+
+        Args:
+            channel: Optional channel filter.
+            status: Optional status filter.
+            skip: Number of items to skip for pagination.
+            limit: Maximum number of items per page.
+
+        Returns:
+            A page of conversation summaries.
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {"skip": skip, "limit": limit}
         if channel is not None:
             params["channel"] = channel
@@ -142,6 +275,17 @@ class AsyncConversationsResource:
         return await self._client._get("/conversations", params=params)
 
     async def get(self, conversation_id: str) -> Any:
+        """Fetch a single conversation by ID.
+
+        Args:
+            conversation_id: The conversation identifier.
+
+        Returns:
+            The conversation record.
+
+        Raises:
+            APIError: If the request fails.
+        """
         return await self._client._get(f"/conversations/{conversation_id}")
 
     async def list_messages(
@@ -153,6 +297,21 @@ class AsyncConversationsResource:
         since: str | None = None,
         before: str | None = None,
     ) -> Any:
+        """List messages in a conversation, oldest first.
+
+        Args:
+            conversation_id: The conversation identifier.
+            skip: Number of items to skip for pagination.
+            limit: Maximum number of items per page.
+            since: Optional ISO-8601 lower bound on message timestamp.
+            before: Optional ISO-8601 upper bound on message timestamp.
+
+        Returns:
+            A page of message records.
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {"skip": skip, "limit": limit}
         if since is not None:
             params["since"] = since
@@ -169,6 +328,21 @@ class AsyncConversationsResource:
         client_temp_id: str | None = None,
         **extra: Any,
     ) -> Any:
+        """Send a message in a conversation.
+
+        Args:
+            conversation_id: The conversation identifier.
+            body: Message body text.
+            media_urls: Optional list of media URLs to attach.
+            client_temp_id: Optional client-generated ID for idempotency.
+            **extra: Additional fields forwarded to the API.
+
+        Returns:
+            The created message record.
+
+        Raises:
+            APIError: If the request fails.
+        """
         payload: dict[str, Any] = {"body": body, **extra}
         if media_urls is not None:
             payload["media_urls"] = media_urls
@@ -177,6 +351,17 @@ class AsyncConversationsResource:
         return await self._client._post(f"/conversations/{conversation_id}/messages", json=payload)
 
     async def mark_read(self, conversation_id: str) -> Any:
+        """Mark all messages in a conversation as read.
+
+        Args:
+            conversation_id: The conversation identifier.
+
+        Returns:
+            The updated conversation record.
+
+        Raises:
+            APIError: If the request fails.
+        """
         return await self._client._post(f"/conversations/{conversation_id}/read")
 
     async def timeline(
@@ -187,6 +372,20 @@ class AsyncConversationsResource:
         since: str | None = None,
         before: str | None = None,
     ) -> Any:
+        """Fetch the interleaved timeline of messages + system events.
+
+        Args:
+            conversation_id: The conversation identifier.
+            limit: Maximum number of events to return.
+            since: Optional ISO-8601 lower bound on event timestamp.
+            before: Optional ISO-8601 upper bound on event timestamp.
+
+        Returns:
+            A list of timeline events.
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {"limit": limit}
         if since is not None:
             params["since"] = since
@@ -201,6 +400,20 @@ class AsyncConversationsResource:
         dynamic_variables: dict[str, Any] | None = None,
         replace: bool = False,
     ) -> Any:
+        """Merge (or replace) the conversation's dynamic variables mid-call.
+
+        Args:
+            conversation_id: The conversation identifier.
+            dynamic_variables: Variables to write.
+            replace: If ``True``, replace the existing map instead of
+                merging. Defaults to ``False``.
+
+        Returns:
+            The updated conversation record.
+
+        Raises:
+            APIError: If the request fails.
+        """
         body: dict[str, Any] = {"replace": replace}
         if dynamic_variables is not None:
             body["dynamic_variables"] = dynamic_variables
@@ -217,6 +430,21 @@ class AsyncConversationsResource:
         agent_id: str | None = None,
         interval: str | None = None,
     ) -> Any:
+        """Fetch the chat-conversations analytics dashboard.
+
+        Args:
+            start_date: ISO-8601 lower bound (inclusive).
+            end_date: ISO-8601 upper bound (inclusive).
+            channel: Optional channel filter.
+            agent_id: Optional agent filter.
+            interval: Optional bucket size for time-series data.
+
+        Returns:
+            The dashboard payload.
+
+        Raises:
+            APIError: If the request fails.
+        """
         params: dict[str, Any] = {}
         if start_date is not None:
             params["start_date"] = start_date

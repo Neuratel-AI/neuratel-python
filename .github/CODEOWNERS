@@ -1,0 +1,6 @@
+# CODEOWNERS
+
+*       @Neuratel-AI
+
+/src/neuratelai/types/_generated.py   @Neuratel-AI
+/.github/workflows/                   @Neuratel-AI

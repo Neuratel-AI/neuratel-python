@@ -155,9 +155,9 @@ NotificationListResponse = _g.NotificationListResponse
 # ── Workflows ────────────────────────────────────────────────────────────
 WorkflowListResponse = _g.WorkflowListResponse
 
-# ── Templates / MCP integrations ─────────────────────────────────────────
+# ── Templates / MCP servers ──────────────────────────────────────────────────
 TemplateListResponse = _g.TemplateListResponse
-MCPIntegrationListResponse = _g.MCPIntegrationListResponse
+McpServerListResponse = _g.McpServerListResponse
 
 __all__ = [
     # Agents
@@ -275,5 +275,5 @@ __all__ = [
     "WorkflowListResponse",
     # Templates / MCP
     "TemplateListResponse",
-    "MCPIntegrationListResponse",
+    "McpServerListResponse",
 ]

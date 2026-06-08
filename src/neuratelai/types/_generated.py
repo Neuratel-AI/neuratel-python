@@ -74,6 +74,27 @@ class ActiveCallParticipant(BaseModel):
     joined_at: str | None = Field(default=None, title="Joined At")
 
 
+class AddToDncConfig(BaseModel):
+    """
+    Configuration for the in-call ``add_to_dnc`` agent tool.
+
+    When enabled, the LLM gets an ``add_to_dnc`` callable it can invoke
+    when the user explicitly asks to never be called again. The tool
+    POSTs to Platform's ``/v1/webhooks/agent/dnc-add`` and the backend
+    looks up the consumer's E.164 from the voice_session row, so the
+    LLM never handles the raw phone number directly.
+
+    Whether or not this in-call tool is enabled, every finished call's
+    transcript is also scanned post-hoc by ``infer_dnc_from_session_report``
+    (gpt-5.4-nano classifier) — the in-call tool is a UX win (faster
+    block) but defense-in-depth lives in the post-call inference job.
+    """
+
+    enabled: bool | None = Field(
+        default=False, description="Enable in-call DNC opt-out tool", title="Enabled"
+    )
+
+
 class Action(Enum):
     add = "add"
     remove = "remove"
@@ -576,6 +597,60 @@ class AnnouncementRequest(BaseModel):
     component_ids: list[UUID] | None = Field(default=None, title="Component Ids")
 
 
+class Kind(Enum):
+    bearer = "bearer"
+    headers = "headers"
+
+
+class Token(RootModel[str]):
+    root: str = Field(..., min_length=1, title="Token")
+
+
+class AuthConnectionCreate(BaseModel):
+    """
+    Create a new credential vault entry.
+
+    For ``kind="bearer"``: pass the raw token in ``token``.
+    For ``kind="headers"``: pass a dict in ``headers``.
+    Exactly one of the two must be supplied; ``_kind_secret_match`` raises a
+    422 with field-level info before the request reaches the service.
+    """
+
+    name: str = Field(..., max_length=255, min_length=1, title="Name")
+    kind: Kind = Field(..., title="Kind")
+    token: Token | None = Field(default=None, title="Token")
+    headers: dict[str, str] | None = Field(default=None, title="Headers")
+
+
+class AuthConnectionResponse(BaseModel):
+    """
+    Response shape — secret value never leaves the server.
+
+    For ``kind="bearer"`` the response sets ``has_token=True`` once a
+    token is stored; for ``kind="headers"`` ``header_keys`` lists the
+    keys (never values).
+    """
+
+    id: UUID = Field(..., title="Id")
+    organization_id: UUID = Field(..., title="Organization Id")
+    name: str = Field(..., title="Name")
+    kind: Kind = Field(..., title="Kind")
+    has_token: bool | None = Field(default=False, title="Has Token")
+    header_keys: list[str] | None = Field(default=None, title="Header Keys")
+    created_at: str | None = Field(default=None, title="Created At")
+    updated_at: str | None = Field(default=None, title="Updated At")
+
+
+class Name1(RootModel[str]):
+    root: str = Field(..., max_length=255, min_length=1, title="Name")
+
+
+class AuthConnectionUpdate(BaseModel):
+    name: Name1 | None = Field(default=None, title="Name")
+    token: Token | None = Field(default=None, title="Token")
+    headers: dict[str, str] | None = Field(default=None, title="Headers")
+
+
 class AutoReloadSettingsRequest(BaseModel):
     """
     Request to update auto-reload settings.
@@ -766,6 +841,29 @@ class BuiltinAudioClip(Enum):
     hold_music = "hold_music"
 
 
+class BulkPasteContactRow(BaseModel):
+    """
+    One pasted-phone row in the manual bulk-paste flow.
+    """
+
+    phone_number: str = Field(..., max_length=40, min_length=3, title="Phone Number")
+    contact_data: dict[str, Any] | None = Field(
+        default=None,
+        description='Optional variables for this contact (e.g. {"name": "Bilal"}). Reserved keys ``phone_number`` and ``status`` are rejected.',
+        title="Contact Data",
+    )
+
+
+class BulkPasteContactsRequest(BaseModel):
+    """
+    POST /call-lists/{id}/contacts/bulk — manual bulk-paste from FE.
+    """
+
+    phones: list[BulkPasteContactRow] = Field(
+        ..., max_length=500, min_length=1, title="Phones"
+    )
+
+
 class CallDurationConfig(BaseModel):
     """
     Configuration for maximum call duration.
@@ -800,80 +898,6 @@ class CallDurationConfig(BaseModel):
     )
 
 
-class FirstName(RootModel[str]):
-    root: str = Field(
-        ..., description="Contact first name", max_length=255, title="First Name"
-    )
-
-
-class LastName(RootModel[str]):
-    root: str = Field(
-        ..., description="Contact last name", max_length=255, title="Last Name"
-    )
-
-
-class Email(RootModel[str]):
-    root: str = Field(..., description="Contact email", max_length=255, title="Email")
-
-
-class Company(RootModel[str]):
-    root: str = Field(
-        ..., description="Contact company", max_length=255, title="Company"
-    )
-
-
-class Subject(RootModel[str]):
-    root: str = Field(
-        ..., description="Call subject or purpose", max_length=500, title="Subject"
-    )
-
-
-class Website(RootModel[str]):
-    root: str = Field(
-        ..., description="Company website", max_length=500, title="Website"
-    )
-
-
-class Revenue(RootModel[str]):
-    root: str = Field(
-        ..., description="Company revenue", max_length=100, title="Revenue"
-    )
-
-
-class City(RootModel[str]):
-    root: str = Field(..., description="Contact city", max_length=255, title="City")
-
-
-class Country(RootModel[str]):
-    root: str = Field(
-        ..., description="Contact country", max_length=255, title="Country"
-    )
-
-
-class Employees(RootModel[str]):
-    root: str = Field(
-        ..., description="Company employee count", max_length=100, title="Employees"
-    )
-
-
-class Industry(RootModel[str]):
-    root: str = Field(
-        ..., description="Company industry", max_length=255, title="Industry"
-    )
-
-
-class CurrentTime(RootModel[str]):
-    root: str = Field(
-        ..., description="Current timestamp", max_length=50, title="Current Time"
-    )
-
-
-class Name1(RootModel[str]):
-    root: str = Field(
-        ..., description="Full contact name (computed)", max_length=255, title="Name"
-    )
-
-
 class CallListContactCreate(BaseModel):
     """
     Schema for creating call list contacts
@@ -883,126 +907,41 @@ class CallListContactCreate(BaseModel):
         ...,
         description="Contact phone number",
         max_length=20,
-        min_length=10,
+        min_length=3,
         title="Phone Number",
-    )
-    first_name: FirstName | None = Field(
-        default=None, description="Contact first name", title="First Name"
-    )
-    last_name: LastName | None = Field(
-        default=None, description="Contact last name", title="Last Name"
-    )
-    email: Email | None = Field(
-        default=None, description="Contact email", title="Email"
-    )
-    company: Company | None = Field(
-        default=None, description="Contact company", title="Company"
-    )
-    subject: Subject | None = Field(
-        default=None, description="Call subject or purpose", title="Subject"
-    )
-    website: Website | None = Field(
-        default=None, description="Company website", title="Website"
-    )
-    revenue: Revenue | None = Field(
-        default=None, description="Company revenue", title="Revenue"
-    )
-    address: str | None = Field(
-        default=None, description="Contact address", title="Address"
-    )
-    city: City | None = Field(default=None, description="Contact city", title="City")
-    country: Country | None = Field(
-        default=None, description="Contact country", title="Country"
-    )
-    employees: Employees | None = Field(
-        default=None, description="Company employee count", title="Employees"
-    )
-    industry: Industry | None = Field(
-        default=None, description="Company industry", title="Industry"
-    )
-    profile: str | None = Field(
-        default=None, description="Contact profile/notes", title="Profile"
-    )
-    current_time: CurrentTime | None = Field(
-        default=None, description="Current timestamp", title="Current Time"
-    )
-    name: Name1 | None = Field(
-        default=None, description="Full contact name (computed)", title="Name"
     )
     contact_data: dict[str, Any] | None = Field(
         default=None,
-        description="Additional dynamic contact data",
+        description="Arbitrary key/value map. Every key becomes a ``{{key}}`` variable available to the agent prompt at call time. Reserved keys ``phone_number`` and ``status`` are rejected (they would override the contact's real columns).",
         title="Contact Data",
     )
 
 
 class CallListContactResponse(BaseModel):
     """
-    Schema for call list contact responses
+    Schema for call list contact responses.
+
+    Phase 1 dropped the `call_count`, `last_called`, `call_result` fields —
+    per-attempt outcomes now live on campaign_attempts and are exposed via
+    GET /v1/campaigns/{id}/attempts.
     """
 
     phone_number: str = Field(
         ...,
         description="Contact phone number",
         max_length=20,
-        min_length=10,
+        min_length=3,
         title="Phone Number",
-    )
-    first_name: FirstName | None = Field(
-        default=None, description="Contact first name", title="First Name"
-    )
-    last_name: LastName | None = Field(
-        default=None, description="Contact last name", title="Last Name"
-    )
-    email: Email | None = Field(
-        default=None, description="Contact email", title="Email"
-    )
-    company: Company | None = Field(
-        default=None, description="Contact company", title="Company"
-    )
-    subject: Subject | None = Field(
-        default=None, description="Call subject or purpose", title="Subject"
-    )
-    website: Website | None = Field(
-        default=None, description="Company website", title="Website"
-    )
-    revenue: Revenue | None = Field(
-        default=None, description="Company revenue", title="Revenue"
-    )
-    address: str | None = Field(
-        default=None, description="Contact address", title="Address"
-    )
-    city: City | None = Field(default=None, description="Contact city", title="City")
-    country: Country | None = Field(
-        default=None, description="Contact country", title="Country"
-    )
-    employees: Employees | None = Field(
-        default=None, description="Company employee count", title="Employees"
-    )
-    industry: Industry | None = Field(
-        default=None, description="Company industry", title="Industry"
-    )
-    profile: str | None = Field(
-        default=None, description="Contact profile/notes", title="Profile"
-    )
-    current_time: CurrentTime | None = Field(
-        default=None, description="Current timestamp", title="Current Time"
-    )
-    name: Name1 | None = Field(
-        default=None, description="Full contact name (computed)", title="Name"
     )
     contact_data: dict[str, Any] | None = Field(
         default=None,
-        description="Additional dynamic contact data",
+        description="Arbitrary key/value map. Every key becomes a ``{{key}}`` variable available to the agent prompt at call time. Reserved keys ``phone_number`` and ``status`` are rejected (they would override the contact's real columns).",
         title="Contact Data",
     )
     id: UUID = Field(..., title="Id")
     call_list_id: UUID = Field(..., title="Call List Id")
     status: str | None = Field(default="active", title="Status")
     is_active: bool | None = Field(default=True, title="Is Active")
-    call_count: int | None = Field(default=0, title="Call Count")
-    last_called: AwareDatetime | None = Field(default=None, title="Last Called")
-    call_result: str | None = Field(default=None, title="Call Result")
     created_at: AwareDatetime = Field(..., title="Created At")
     updated_at: AwareDatetime | None = Field(default=None, title="Updated At")
 
@@ -1012,7 +951,7 @@ class PhoneNumber(RootModel[str]):
         ...,
         description="Contact phone number",
         max_length=20,
-        min_length=10,
+        min_length=3,
         title="Phone Number",
     )
 
@@ -1020,73 +959,29 @@ class PhoneNumber(RootModel[str]):
 class Status(RootModel[str]):
     root: str = Field(
         ...,
-        description="Contact status: active, dnc, invalid, or called",
-        pattern="^(active|dnc|invalid|called)$",
+        description="Contact status: active, dnc, invalid, opted_out, or called (legacy)",
+        pattern="^(active|dnc|invalid|opted_out|called)$",
         title="Status",
-    )
-
-
-class Name3(RootModel[str]):
-    root: str = Field(
-        ..., description="Full contact name", max_length=255, title="Name"
     )
 
 
 class CallListContactUpdate(BaseModel):
     """
-    Schema for updating call list contacts with extended fields
+    Schema for updating call list contacts.
     """
 
     phone_number: PhoneNumber | None = Field(
         default=None, description="Contact phone number", title="Phone Number"
     )
-    first_name: FirstName | None = Field(
-        default=None, description="Contact first name", title="First Name"
-    )
-    last_name: LastName | None = Field(
-        default=None, description="Contact last name", title="Last Name"
-    )
-    email: Email | None = Field(
-        default=None, description="Contact email", title="Email"
-    )
-    company: Company | None = Field(
-        default=None, description="Contact company", title="Company"
-    )
-    subject: Subject | None = Field(
-        default=None, description="Call subject or purpose", title="Subject"
-    )
-    website: Website | None = Field(
-        default=None, description="Company website", title="Website"
-    )
-    revenue: Revenue | None = Field(
-        default=None, description="Company revenue", title="Revenue"
-    )
-    address: str | None = Field(
-        default=None, description="Contact address", title="Address"
-    )
-    city: City | None = Field(default=None, description="Contact city", title="City")
-    country: Country | None = Field(
-        default=None, description="Contact country", title="Country"
-    )
-    employees: Employees | None = Field(
-        default=None, description="Company employee count", title="Employees"
-    )
-    industry: Industry | None = Field(
-        default=None, description="Company industry", title="Industry"
-    )
-    profile: str | None = Field(
-        default=None, description="Contact profile/notes", title="Profile"
+    contact_data: dict[str, Any] | None = Field(
+        default=None,
+        description="Replace the contact's variable map. Pass {} to clear; omit to leave unchanged. Reserved keys ``phone_number`` and ``status`` are rejected.",
+        title="Contact Data",
     )
     status: Status | None = Field(
         default=None,
-        description="Contact status: active, dnc, invalid, or called",
+        description="Contact status: active, dnc, invalid, opted_out, or called (legacy)",
         title="Status",
-    )
-    name: Name3 | None = Field(
-        default=None, description="Full contact name", title="Name"
-    )
-    contact_data: dict[str, Any] | None = Field(
-        default=None, description="Additional contact data", title="Contact Data"
     )
     is_active: bool | None = Field(
         default=None, description="Contact active status", title="Is Active"
@@ -1126,7 +1021,7 @@ class CallListResponse(BaseModel):
     updated_at: AwareDatetime = Field(..., title="Updated At")
 
 
-class Name4(RootModel[str]):
+class Name2(RootModel[str]):
     root: str = Field(
         ..., description="Call list name", max_length=255, min_length=1, title="Name"
     )
@@ -1137,7 +1032,7 @@ class CallListUpdate(BaseModel):
     Schema for updating call lists
     """
 
-    name: Name4 | None = Field(default=None, description="Call list name", title="Name")
+    name: Name2 | None = Field(default=None, description="Call list name", title="Name")
     description: str | None = Field(
         default=None, description="Call list description", title="Description"
     )
@@ -1305,17 +1200,41 @@ class CallVolumeDataPoint(BaseModel):
     )
 
 
+class CampaignAttemptResponse(BaseModel):
+    """
+    One attempt to dial a single contact.
+
+    Phase 1 introduces this as the per-attempt progress primitive.
+    """
+
+    id: UUID = Field(..., title="Id")
+    campaign_id: UUID = Field(..., title="Campaign Id")
+    contact_id: UUID = Field(..., title="Contact Id")
+    attempt_number: int = Field(..., title="Attempt Number")
+    outcome: str = Field(..., title="Outcome")
+    error_message: str | None = Field(default=None, title="Error Message")
+    scheduled_for: AwareDatetime | None = Field(default=None, title="Scheduled For")
+    dispatched_at: AwareDatetime | None = Field(default=None, title="Dispatched At")
+    completed_at: AwareDatetime | None = Field(default=None, title="Completed At")
+    created_at: AwareDatetime = Field(..., title="Created At")
+    updated_at: AwareDatetime = Field(..., title="Updated At")
+
+
 class CampaignConfig(BaseModel):
     """
     Campaign dialer configuration.
+
+    Concurrency is governed by the org-level cap (Organization.sku →
+    effective_max_concurrent_calls). Per-campaign concurrency / per-minute
+    knobs were removed in the May-2026 dispatcher refactor — they
+    duplicated the org cap and silently throttled high-Scale orgs to a
+    legacy default of 5 (or whatever the wizard slider was set to).
     """
 
-    max_concurrent_calls: int | None = Field(default=None, title="Max Concurrent Calls")
     call_timeout_seconds: int | None = Field(default=None, title="Call Timeout Seconds")
     retry_attempts: int | None = Field(default=None, title="Retry Attempts")
     retry_delay_seconds: int | None = Field(default=None, title="Retry Delay Seconds")
-    calls_per_minute: int | None = Field(default=None, title="Calls Per Minute")
-    calls_per_hour: int | None = Field(default=None, title="Calls Per Hour")
+    retry_outcomes: list[str] | None = Field(default=None, title="Retry Outcomes")
 
 
 class CampaignPerformance(BaseModel):
@@ -1377,6 +1296,78 @@ class CampaignPerformance(BaseModel):
         description="Average call duration",
         ge=0.0,
         title="Avg Duration Sec",
+    )
+
+
+class CampaignRetryRequest(BaseModel):
+    """
+    Body for POST /campaigns/{id}/retry — re-dial failed attempts.
+
+    Both filters are optional:
+    - contact_ids: restrict the retry to these contacts only.
+    - outcomes:    only retry attempts whose latest outcome is in this set.
+                   Default: failed, no_answer, voicemail, busy.
+
+    Creates one new CampaignAttempt per matched contact with
+    attempt_number = max(prior attempts) + 1, then enqueues dispatch.
+    """
+
+    contact_ids: list[UUID] | None = Field(
+        default=None,
+        description="Restrict retry to these contacts (default: all matched)",
+        title="Contact Ids",
+    )
+    outcomes: list[str] | None = Field(
+        default=None,
+        description="Only retry attempts in these outcomes. Default: failed, no_answer, voicemail, busy.",
+        title="Outcomes",
+    )
+
+
+class CampaignRetryResponse(BaseModel):
+    """
+    Result of POST /campaigns/{id}/retry.
+    """
+
+    requeued: int = Field(
+        ..., description="Number of new attempts created", title="Requeued"
+    )
+    contacts: list[UUID] | None = Field(
+        default=None, description="Contact IDs that were retried", title="Contacts"
+    )
+
+
+class CampaignTestWebhookResponse(BaseModel):
+    """
+    Result of POST /campaigns/{id}/test-webhook.
+
+    The endpoint fires a synthetic ``campaign.test`` payload against the
+    campaign's configured ``status_webhook`` URL so the operator can
+    verify their receiver before going live. Receivers should ignore
+    this event type — it's distinct from real lifecycle events
+    (``campaign.completed``, ``campaign.stopped``, ``campaign.failed``).
+    """
+
+    success: bool = Field(
+        ..., description="True if the receiver responded 2xx.", title="Success"
+    )
+    status_code: int | None = Field(
+        default=None,
+        description="HTTP status code from the receiver.",
+        title="Status Code",
+    )
+    response_body: str | None = Field(
+        default=None,
+        description="Truncated response body (first 500 chars).",
+        title="Response Body",
+    )
+    latency_ms: int = Field(
+        ..., description="Round-trip time in milliseconds.", title="Latency Ms"
+    )
+    error: str | None = Field(
+        default=None,
+        description="Set when the request failed before getting a response.",
+        title="Error",
     )
 
 
@@ -1694,6 +1685,123 @@ class ConcurrencyResponse(BaseModel):
     limit: int = Field(..., title="Limit")
     available: int = Field(..., title="Available")
     unlimited: bool = Field(..., title="Unlimited")
+
+
+class ContactImportCommitRequest(BaseModel):
+    """
+    Body for POST /call-lists/{id}/contacts/import.
+
+    ``mapping`` overrides ``suggested_mapping`` from the preview step.
+    Headers omitted from ``mapping`` are imported into ``contact_data``
+    so dynamic-variable agents can still address them.
+    """
+
+    preview_token: str = Field(..., title="Preview Token")
+    mapping: dict[str, str] | None = Field(default=None, title="Mapping")
+    run_async: bool | None = Field(
+        default=False,
+        description="Force the background path. Auto-on for files >1000 rows; the FE may also opt in to background mode for smaller files to keep the UI responsive.",
+        title="Run Async",
+    )
+
+
+class ContactImportCommitResponse(BaseModel):
+    """
+    One of two shapes depending on ``run_async``:
+
+    - sync: returns the final result inline.
+    - async: returns ``{job_id, status: "queued"}`` and the FE polls
+      GET /call-lists/import-jobs/{job_id} for progress.
+    """
+
+    job_id: str | None = Field(
+        default=None,
+        description="Set when run_async is true; poll for progress.",
+        title="Job Id",
+    )
+    status: str = Field(..., description="queued | completed | failed", title="Status")
+    imported_count: int | None = Field(default=0, title="Imported Count")
+    skipped_count: int | None = Field(default=0, title="Skipped Count")
+    dnc_blocked_count: int | None = Field(default=0, title="Dnc Blocked Count")
+    errors: list[dict[str, Any]] | None = Field(default=None, title="Errors")
+
+
+class ContactImportInvalidRow(BaseModel):
+    """
+    One bad row surfaced in the preview screen so the user can fix
+    their CSV before committing the import.
+    """
+
+    row_number: int = Field(
+        ..., description="1-indexed row number, header = row 1", title="Row Number"
+    )
+    reason: str = Field(
+        ..., description="Why the row failed validation", title="Reason"
+    )
+    raw: dict[str, str] | None = Field(
+        default=None, description="Raw cell values for this row", title="Raw"
+    )
+
+
+class ContactImportPreviewResponse(BaseModel):
+    """
+    What POST /call-lists/{id}/contacts/preview returns.
+
+    The FE renders a column-mapping screen using ``detected_headers`` +
+    ``suggested_mapping``. The user can override any mapping, then POSTs
+    back to /import with the ``preview_token``.
+    """
+
+    preview_token: str = Field(
+        ...,
+        description="Opaque token to pass to /import. TTL ~10 minutes.",
+        title="Preview Token",
+    )
+    detected_headers: list[str] = Field(..., title="Detected Headers")
+    suggested_mapping: dict[str, str] | None = Field(
+        default=None,
+        description="raw_header → canonical_field mapping derived from header aliases.",
+        title="Suggested Mapping",
+    )
+    sample_rows: list[dict[str, str]] | None = Field(
+        default=None,
+        description="First 10 rows with raw cell values.",
+        title="Sample Rows",
+    )
+    invalid_rows_preview: list[ContactImportInvalidRow] | None = Field(
+        default=None,
+        description="First 10 invalid rows with reasons.",
+        title="Invalid Rows Preview",
+    )
+    total_rows: int = Field(..., title="Total Rows")
+    encoding: str = Field(..., title="Encoding")
+    delimiter: str = Field(..., title="Delimiter")
+
+
+class ContactImportProgressError(BaseModel):
+    row_number: int = Field(..., title="Row Number")
+    phone: str | None = Field(default="", title="Phone")
+    reason: str = Field(..., title="Reason")
+
+
+class ContactImportProgressResponse(BaseModel):
+    """
+    Progress snapshot for the GET /call-lists/import-jobs/{job_id} poll.
+    """
+
+    status: str = Field(
+        ..., description="queued | running | completed | failed", title="Status"
+    )
+    total: int | None = Field(default=0, title="Total")
+    processed: int | None = Field(default=0, title="Processed")
+    imported: int | None = Field(default=0, title="Imported")
+    skipped: int | None = Field(default=0, title="Skipped")
+    dnc_blocked: int | None = Field(default=0, title="Dnc Blocked")
+    errors: list[ContactImportProgressError] | None = Field(
+        default=None, title="Errors"
+    )
+    completed_at: AwareDatetime | None = Field(default=None, title="Completed At")
+    error_summary: str | None = Field(default=None, title="Error Summary")
 
 
 class ContributionDataPoint(BaseModel):
@@ -2587,7 +2695,7 @@ class KnowledgeBaseType(Enum):
     text = "text"
 
 
-class Name5(RootModel[str]):
+class Name3(RootModel[str]):
     root: str = Field(..., max_length=255, min_length=1, title="Name")
 
 
@@ -2596,7 +2704,7 @@ class KnowledgeBaseUpdate(BaseModel):
     Update knowledge base metadata and content.
     """
 
-    name: Name5 | None = Field(default=None, title="Name")
+    name: Name3 | None = Field(default=None, title="Name")
     description: Description2 | None = Field(default=None, title="Description")
     content: str | None = Field(
         default=None,
@@ -2639,100 +2747,6 @@ class LatencyMetrics(BaseModel):
         description="Total end-to-end response time",
         title="Total Response Ms",
     )
-
-
-class Description5(RootModel[str]):
-    root: str = Field(..., max_length=2000, title="Description")
-
-
-class Protocol(Enum):
-    http = "http"
-    sse = "sse"
-
-
-class MCPIntegrationCreate(BaseModel):
-    """
-    Connect an MCP server to make its tools available to your agents.
-
-    Organization is determined from your API key - no need to specify.
-    """
-
-    name: str = Field(..., max_length=255, min_length=1, title="Name")
-    description: Description5 | None = Field(default=None, title="Description")
-    server_url: AnyUrl = Field(..., title="Server Url")
-    protocol: Protocol | None = Field(default="http", title="Protocol")
-    timeout_seconds: int | None = Field(
-        default=20, ge=1, le=300, title="Timeout Seconds"
-    )
-    headers: dict[str, str] | None = Field(default=None, title="Headers")
-    metadata: dict[str, Any] | None = Field(default=None, title="Metadata")
-
-
-class MCPIntegrationResponse(BaseModel):
-    """
-    MCP integration response - includes all fields from base plus identifiers
-    """
-
-    name: str = Field(..., max_length=255, min_length=1, title="Name")
-    description: Description5 | None = Field(default=None, title="Description")
-    server_url: AnyUrl = Field(..., title="Server Url")
-    protocol: Protocol | None = Field(default="http", title="Protocol")
-    timeout_seconds: int | None = Field(
-        default=20, ge=1, le=300, title="Timeout Seconds"
-    )
-    headers: dict[str, str] | None = Field(default=None, title="Headers")
-    metadata: dict[str, Any] | None = Field(default=None, title="Metadata")
-    id: UUID = Field(..., title="Id")
-    organization_id: UUID = Field(..., title="Organization Id")
-    last_test_status: str | None = Field(default=None, title="Last Test Status")
-    last_test_at: str | None = Field(default=None, title="Last Test At")
-    last_test_error: str | None = Field(default=None, title="Last Test Error")
-    created_at: str | None = Field(default=None, title="Created At")
-    updated_at: str | None = Field(default=None, title="Updated At")
-
-
-class ServerUrl(RootModel[AnyUrl]):
-    root: AnyUrl = Field(..., title="Server Url")
-
-
-class TimeoutSeconds(RootModel[int]):
-    root: int = Field(20, ge=1, le=300, title="Timeout Seconds")
-
-
-class MCPIntegrationTestRequest(BaseModel):
-    integration_id: UUID | None = Field(default=None, title="Integration Id")
-    server_url: ServerUrl | None = Field(default=None, title="Server Url")
-    protocol: Protocol | None = Field(default="http", title="Protocol")
-    timeout_seconds: TimeoutSeconds | None = Field(
-        default=20, title="Timeout Seconds", validate_default=True
-    )
-    headers: dict[str, str] | None = Field(default=None, title="Headers")
-    metadata: dict[str, Any] | None = Field(default=None, title="Metadata")
-    payload: dict[str, Any] | None = Field(default=None, title="Payload")
-
-
-class MCPIntegrationTestResponse(BaseModel):
-    status: str = Field(..., title="Status")
-    status_code: int | None = Field(..., title="Status Code")
-    body: Any = Field(default=None, title="Body")
-    message: str | None = Field(default=None, title="Message")
-    steps: dict[str, dict[str, Any]] | None = Field(default=None, title="Steps")
-
-
-class TimeoutSeconds1(RootModel[int]):
-    root: int = Field(..., ge=1, le=300, title="Timeout Seconds")
-
-
-class MCPIntegrationUpdate(BaseModel):
-    name: Name5 | None = Field(default=None, title="Name")
-    description: Description5 | None = Field(default=None, title="Description")
-    server_url: ServerUrl | None = Field(default=None, title="Server Url")
-    protocol: Protocol | None = Field(default="http", title="Protocol")
-    timeout_seconds: TimeoutSeconds1 | None = Field(
-        default=None, title="Timeout Seconds"
-    )
-    headers: dict[str, str] | None = Field(default=None, title="Headers")
-    metadata: dict[str, Any] | None = Field(default=None, title="Metadata")
 
 
 class MaintenanceCreate(BaseModel):
@@ -2810,26 +2824,110 @@ class MarkReadResponse(BaseModel):
     marked_count: int = Field(..., title="Marked Count")
 
 
+class McpExecuteRequest(BaseModel):
+    arguments: dict[str, Any] | None = Field(default=None, title="Arguments")
+
+
+class McpExecuteResult(BaseModel):
+    success: bool = Field(..., title="Success")
+    tool_name: str = Field(..., title="Tool Name")
+    arguments: dict[str, Any] | None = Field(default=None, title="Arguments")
+    content: list[Any] | None = Field(default=None, title="Content")
+    is_error: bool | None = Field(default=False, title="Is Error")
+    error: str | None = Field(default=None, title="Error")
+    error_type: str | None = Field(default=None, title="Error Type")
+
+
+class Description5(RootModel[str]):
+    root: str = Field(..., max_length=2000, title="Description")
+
+
+class McpServerCreate(BaseModel):
+    name: str = Field(..., max_length=255, min_length=1, title="Name")
+    description: Description5 | None = Field(default=None, title="Description")
+    server_url: AnyUrl = Field(..., title="Server Url")
+    timeout_seconds: int | None = Field(
+        default=30, ge=1, le=300, title="Timeout Seconds"
+    )
+    auth_connection_id: UUID | None = Field(default=None, title="Auth Connection Id")
+
+
 class McpServerRef(BaseModel):
     """
-    Reference to an MCP server integration.
+    Per-agent reference to an MCP server registration.
+
+    Stored on ``agents.config.tools.mcp_servers``. The agent owns only an
+    ID + per-attachment allowlist; URL/headers/auth live on the
+    ``mcp_servers`` table and are resolved at dispatch time. ``integration_id``
+    is the legacy name (pre-rebuild) and is accepted as an alias so older
+    saved agent configs keep loading.
     """
 
-    integration_id: str = Field(
-        ..., description="ID of the MCP integration", title="Integration Id"
+    server_id: str = Field(
+        ..., description="ID of the MCP server registration", title="Server Id"
     )
-    selected_tools: list[str] | None = Field(
+    allowed_tools: list[str] | None = Field(
         default=None,
-        description="Specific tools to enable (None = all)",
-        title="Selected Tools",
+        description="Specific tool names to expose to this agent (None = all)",
+        title="Allowed Tools",
     )
-    timeout_seconds: float | None = Field(
-        default=30.0,
-        description="Timeout for tool execution",
-        ge=1.0,
-        le=120.0,
-        title="Timeout Seconds",
+
+
+class McpServerResponse(BaseModel):
+    id: UUID = Field(..., title="Id")
+    organization_id: UUID = Field(..., title="Organization Id")
+    name: str = Field(..., title="Name")
+    description: str | None = Field(default=None, title="Description")
+    server_url: str = Field(..., title="Server Url")
+    timeout_seconds: int = Field(..., title="Timeout Seconds")
+    auth_connection_id: UUID | None = Field(default=None, title="Auth Connection Id")
+    last_test_status: str | None = Field(default=None, title="Last Test Status")
+    last_test_at: str | None = Field(default=None, title="Last Test At")
+    last_test_error: str | None = Field(default=None, title="Last Test Error")
+    created_at: str | None = Field(default=None, title="Created At")
+    updated_at: str | None = Field(default=None, title="Updated At")
+
+
+class ServerUrl(RootModel[AnyUrl]):
+    root: AnyUrl = Field(..., title="Server Url")
+
+
+class TimeoutSeconds(RootModel[int]):
+    root: int = Field(..., ge=1, le=300, title="Timeout Seconds")
+
+
+class McpServerUpdate(BaseModel):
+    name: Name3 | None = Field(default=None, title="Name")
+    description: Description5 | None = Field(default=None, title="Description")
+    server_url: ServerUrl | None = Field(default=None, title="Server Url")
+    timeout_seconds: TimeoutSeconds | None = Field(
+        default=None, title="Timeout Seconds"
     )
+    auth_connection_id: UUID | None = Field(default=None, title="Auth Connection Id")
+
+
+class McpTool(BaseModel):
+    name: str = Field(..., title="Name")
+    description: str | None = Field(default="", title="Description")
+    input_schema: dict[str, Any] | None = Field(default=None, title="Input Schema")
+
+
+class McpValidateRequest(BaseModel):
+    """
+    Probe a server config WITHOUT persisting it.
+
+    Use either ``auth_connection_id`` to reuse a stored credential, OR
+    ``inline_headers`` for a one-shot test (the create modal uses inline
+    headers before the auth connection has been created). If both are
+    supplied ``inline_headers`` takes priority.
+    """
+
+    server_url: AnyUrl = Field(..., title="Server Url")
+    timeout_seconds: int | None = Field(
+        default=20, ge=1, le=300, title="Timeout Seconds"
+    )
+    auth_connection_id: UUID | None = Field(default=None, title="Auth Connection Id")
+    inline_headers: dict[str, str] | None = Field(default=None, title="Inline Headers")
 
 
 class MemberResponse(BaseModel):
@@ -2955,6 +3053,16 @@ class NumberUnassignResponse(BaseModel):
     status: str = Field(..., title="Status")
 
 
+class OnboardingStatusResponse(BaseModel):
+    """
+    Used by the FE to decide whether /outbound should redirect into
+    the first-run wizard. ``completed_at`` is null until the user has
+    either completed or explicitly skipped onboarding.
+    """
+
+    completed_at: str | None = Field(default=None, title="Completed At")
+
+
 class OpenAIModel(Enum):
     """
     OpenAI chat models - Updated Apr 2026.
@@ -3011,11 +3119,11 @@ class Sku(Enum):
     scale = "scale"
 
 
-class Website3(RootModel[str]):
+class Website(RootModel[str]):
     root: str = Field(..., max_length=500, title="Website")
 
 
-class Email3(RootModel[str]):
+class Email(RootModel[str]):
     root: str = Field(..., max_length=255, title="Email")
 
 
@@ -3028,8 +3136,8 @@ class OrganizationCreate(BaseModel):
     slug: Slug | None = Field(default=None, title="Slug")
     logo_url: LogoUrl | None = Field(default=None, title="Logo Url")
     sku: Sku | None = Field(default="pilot", title="Sku")
-    website: Website3 | None = Field(default=None, title="Website")
-    email: Email3 | None = Field(default=None, title="Email")
+    website: Website | None = Field(default=None, title="Website")
+    email: Email | None = Field(default=None, title="Email")
 
 
 class OpenaiApiKey(RootModel[str]):
@@ -3226,7 +3334,7 @@ class OrganizationUpdate(BaseModel):
     Schema for updating organization settings and credentials
     """
 
-    name: Name5 | None = Field(default=None, title="Name")
+    name: Name3 | None = Field(default=None, title="Name")
     max_agents: int | None = Field(default=None, title="Max Agents")
     max_members: int | None = Field(default=None, title="Max Members")
     max_concurrent_calls: int | None = Field(default=None, title="Max Concurrent Calls")
@@ -3248,8 +3356,8 @@ class OrganizationUpdate(BaseModel):
     stripe_balance_mirror_enabled: bool | None = Field(
         default=None, title="Stripe Balance Mirror Enabled"
     )
-    website: Website3 | None = Field(default=None, title="Website")
-    email: Email3 | None = Field(default=None, title="Email")
+    website: Website | None = Field(default=None, title="Website")
+    email: Email | None = Field(default=None, title="Email")
     openai_api_key: OpenaiApiKey | None = Field(default=None, title="Openai Api Key")
     deepgram_api_key: DeepgramApiKey | None = Field(
         default=None, title="Deepgram Api Key"
@@ -3302,7 +3410,12 @@ class OutboundCampaignCreate(BaseModel):
 
 class OutboundCampaignResponse(BaseModel):
     """
-    Schema for outbound campaign responses
+    Schema for outbound campaign responses.
+
+    Phase 1 dropped the dead `calls_made/completed/successful` denormalized
+    counters from the model. Aggregated stats are exposed via
+    GET /v1/campaigns/{id}/stats (CampaignStats below) which sources from
+    campaign_attempts.
     """
 
     name: str = Field(
@@ -3325,18 +3438,18 @@ class OutboundCampaignResponse(BaseModel):
     status: str = Field(..., title="Status")
     error_message: str | None = Field(default=None, title="Error Message")
     status_webhook: str | None = Field(default=None, title="Status Webhook")
-    total_contacts: int | None = Field(default=0, title="Total Contacts")
-    calls_made: int | None = Field(default=0, title="Calls Made")
-    calls_completed: int | None = Field(default=0, title="Calls Completed")
-    calls_successful: int | None = Field(default=0, title="Calls Successful")
     created_at: AwareDatetime = Field(..., title="Created At")
     updated_at: AwareDatetime = Field(..., title="Updated At")
     scheduled_start: AwareDatetime | None = Field(default=None, title="Scheduled Start")
     actual_start: AwareDatetime | None = Field(default=None, title="Actual Start")
     completed_at: AwareDatetime | None = Field(default=None, title="Completed At")
+    last_progress_at: AwareDatetime | None = Field(
+        default=None, title="Last Progress At"
+    )
+    last_pause_at: AwareDatetime | None = Field(default=None, title="Last Pause At")
 
 
-class Name8(RootModel[str]):
+class Name6(RootModel[str]):
     root: str = Field(
         ..., description="Campaign name", max_length=255, min_length=1, title="Name"
     )
@@ -3344,10 +3457,16 @@ class Name8(RootModel[str]):
 
 class OutboundCampaignUpdate(BaseModel):
     """
-    Schema for updating outbound campaigns
+    Schema for updating outbound campaigns.
+
+    Phase 3 removed the `status` field from this schema. State changes
+    happen ONLY through the dedicated lifecycle endpoints (/start,
+    /pause, /resume, /stop, /cancel) which funnel through the state
+    machine in `app/domains/campaigns/state.py`. PUT /campaigns/{id}
+    is for editing config (name, schedule, pacing, etc.) only.
     """
 
-    name: Name8 | None = Field(default=None, description="Campaign name", title="Name")
+    name: Name6 | None = Field(default=None, description="Campaign name", title="Name")
     description: str | None = Field(
         default=None, description="Campaign description", title="Description"
     )
@@ -3368,9 +3487,6 @@ class OutboundCampaignUpdate(BaseModel):
         default=None,
         description="Call list ID for contacts to call",
         title="Call List Id",
-    )
-    status: str | None = Field(
-        default=None, description="Campaign status", title="Status"
     )
     call_schedule: CallSchedule | None = Field(
         default=None, description="Call scheduling configuration"
@@ -3421,7 +3537,7 @@ class PaymentMethodResponse(BaseModel):
 
 class Permission(Enum):
     """
-    All 60 permissions in the system.
+    All 63 permissions in the system.
     Format: resource:action (flat strings, no nesting)
 
     These are used by:
@@ -3451,13 +3567,12 @@ class Permission(Enum):
     campaigns_start = "campaigns:start"
     campaigns_pause = "campaigns:pause"
     campaigns_stop = "campaigns:stop"
-    campaigns_duplicate = "campaigns:duplicate"
+    campaigns_cancel = "campaigns:cancel"
     call_lists_view = "call_lists:view"
     call_lists_create = "call_lists:create"
     call_lists_edit = "call_lists:edit"
     call_lists_delete = "call_lists:delete"
     call_lists_import = "call_lists:import"
-    call_lists_export = "call_lists:export"
     contacts_view = "contacts:view"
     contacts_create = "contacts:create"
     contacts_edit = "contacts:edit"
@@ -4323,12 +4438,12 @@ class UpdateRoleRequest(BaseModel):
     role: Role = Field(..., title="Role")
 
 
-class Name9(RootModel[str]):
+class Name7(RootModel[str]):
     root: str = Field(..., max_length=255, min_length=1, title="Name")
 
 
 class UpdateWorkflowRequest(BaseModel):
-    name: Name9 | None = Field(default=None, title="Name")
+    name: Name7 | None = Field(default=None, title="Name")
     description: str | None = Field(default=None, title="Description")
     agent_id: UUID | None = Field(default=None, title="Agent Id")
 
@@ -4359,6 +4474,12 @@ class ValidationError(BaseModel):
     type: str = Field(..., title="Error Type")
     input: Any | None = Field(default=None, title="Input")
     ctx: dict[str, Any] | None = Field(default=None, title="Context")
+
+
+class VariableCoverageStat(BaseModel):
+    filled: int = Field(..., title="Filled")
+    total: int = Field(..., title="Total")
+    pct: float = Field(..., title="Pct")
 
 
 class VoiceFilterOptions(BaseModel):
@@ -4474,7 +4595,7 @@ class VoicemailToolConfig(BaseModel):
     )
 
 
-class Description8(RootModel[str]):
+class Description7(RootModel[str]):
     root: str = Field(
         ..., description="Optional description", max_length=1000, title="Description"
     )
@@ -4633,6 +4754,14 @@ class WebhookEventTypeEnum(Enum):
     agent_turn_ended = "agent.turn.ended"
     agent_tool_called = "agent.tool.called"
     call_summary_ready = "call.summary.ready"
+    campaign_started = "campaign.started"
+    campaign_paused = "campaign.paused"
+    campaign_resumed = "campaign.resumed"
+    campaign_stopped = "campaign.stopped"
+    campaign_cancelled = "campaign.cancelled"
+    campaign_completed = "campaign.completed"
+    campaign_retry_scheduled = "campaign.retry_scheduled"
+    dnc_added = "dnc.added"
 
 
 class WebhookResponse(BaseModel):
@@ -4729,7 +4858,7 @@ class WebhookTestResponse(BaseModel):
     duration_ms: int = Field(..., title="Duration Ms")
 
 
-class Description9(RootModel[str]):
+class Description8(RootModel[str]):
     root: str = Field(..., max_length=1000, title="Description")
 
 
@@ -4741,7 +4870,7 @@ class AuthValue1(RootModel[str]):
     root: str = Field(..., max_length=500, title="Auth Value")
 
 
-class TimeoutSeconds2(RootModel[int]):
+class TimeoutSeconds1(RootModel[int]):
     root: int = Field(..., ge=1, le=60, title="Timeout Seconds")
 
 
@@ -4754,13 +4883,13 @@ class WebhookUpdate(BaseModel):
     Update an existing webhook subscription
     """
 
-    name: Name9 | None = Field(default=None, title="Name")
-    description: Description9 | None = Field(default=None, title="Description")
+    name: Name7 | None = Field(default=None, title="Name")
+    description: Description8 | None = Field(default=None, title="Description")
     url: str | None = Field(default=None, title="Url")
     events: list[WebhookEventTypeEnum] | None = Field(default=None, title="Events")
     auth_header: AuthHeader1 | None = Field(default=None, title="Auth Header")
     auth_value: AuthValue1 | None = Field(default=None, title="Auth Value")
-    timeout_seconds: TimeoutSeconds2 | None = Field(
+    timeout_seconds: TimeoutSeconds1 | None = Field(
         default=None, title="Timeout Seconds"
     )
     max_retries: MaxRetries | None = Field(default=None, title="Max Retries")
@@ -4913,18 +5042,6 @@ class KnowledgeBaseFileUpload(BaseModel):
     )
     file: bytes = Field(
         ..., description="File to upload (txt, md, html, pdf, docx, epub)", title="File"
-    )
-
-
-class BulkImportCSV(BaseModel):
-    """
-    Upload a CSV file to bulk import contacts into a call list.
-    """
-
-    file: bytes = Field(
-        ...,
-        description="CSV file with contact data (max 10MB, 10,000 rows)",
-        title="File",
     )
 
 
@@ -5083,15 +5200,13 @@ class AnalysisPlan(BaseModel):
     """
     Post-call analysis configuration.
 
-    Automatically summarizes and evaluates every call for insights and quality control.
-    Results are attached to the call record and stored in session_reports.
+    Per-feature presence-based gating: each analysis runs only when its
+    prompt / schema / flag is populated. The previous master ``enabled``
+    toggle was removed in May 2026 — it was a footgun (users would set
+    summaryPrompt and still get nothing because they didn't notice the
+    master switch was off).
     """
 
-    enabled: bool | None = Field(
-        default=False,
-        description="Master switch for the new analysis plan. When false, no analysisPlan-driven analysis runs.",
-        title="Enabled",
-    )
     summaryPrompt: str | None = Field(
         default=None,
         description="Custom prompt for call summary. Empty string disables summary.",
@@ -5137,6 +5252,10 @@ class AnalysisPlan(BaseModel):
         le=20,
         title="Minmessagesthreshold",
     )
+
+
+class AuthConnectionListResponse(BaseModel):
+    results: list[AuthConnectionResponse] = Field(..., title="Results")
 
 
 class AuthContextResponse(BaseModel):
@@ -5234,6 +5353,19 @@ class BatchCallRequest(BaseModel):
     agent_id: UUID = Field(..., title="Agent Id")
 
 
+class BulkPasteContactsResponse(BaseModel):
+    """
+    Result of /contacts/bulk.
+    """
+
+    imported_count: int | None = Field(default=0, title="Imported Count")
+    skipped_count: int | None = Field(default=0, title="Skipped Count")
+    dnc_blocked_count: int | None = Field(default=0, title="Dnc Blocked Count")
+    errors: list[ContactImportProgressError] | None = Field(
+        default=None, title="Errors"
+    )
+
+
 class CallListsListResponse(BaseModel):
     """
     Paginated list of call lists.
@@ -5245,6 +5377,30 @@ class CallListsListResponse(BaseModel):
 
     results: list[CallListResponse] = Field(..., title="Results")
     metadata: PaginationMetadata
+
+
+class CampaignAttemptListResponse(BaseModel):
+    """
+    Paginated list of CampaignAttempt rows for GET /campaigns/{id}/attempts.
+    """
+
+    results: list[CampaignAttemptResponse] = Field(..., title="Results")
+    metadata: PaginationMetadata
+
+
+class CampaignCoverageResponse(BaseModel):
+    """
+    Per-required-variable fill rate across a call list's active contacts.
+
+    Powers the wizard Step 1 coverage report and mirrors the math the
+    /start hard-block uses. ``blocking_zero_pct`` is the slice that
+    would refuse a launch.
+    """
+
+    required_variables: list[str] = Field(..., title="Required Variables")
+    total_contacts: int = Field(..., title="Total Contacts")
+    per_variable: dict[str, VariableCoverageStat] = Field(..., title="Per Variable")
+    blocking_zero_pct: list[str] = Field(..., title="Blocking Zero Pct")
 
 
 class CampaignListResponse(BaseModel):
@@ -5516,17 +5672,21 @@ class KnowledgeBaseResponse(BaseModel):
     is_active: bool = Field(..., title="Is Active")
 
 
-class MCPIntegrationListResponse(BaseModel):
+class McpProbeResult(BaseModel):
     """
-    Paginated list of MCP integrations.
-
-    Standardized pagination format:
-    - results: List of integrations
-    - metadata: Pagination info (skip, limit, total, has_more, count)
+    Outcome of a connect + ``tools/list`` probe.
     """
 
-    results: list[MCPIntegrationResponse] = Field(..., title="Results")
-    metadata: PaginationMetadata
+    success: bool = Field(..., title="Success")
+    server_info: dict[str, Any] | None = Field(default=None, title="Server Info")
+    tools: list[McpTool] | None = Field(default=None, title="Tools")
+    tool_count: int | None = Field(default=0, title="Tool Count")
+    error: str | None = Field(default=None, title="Error")
+    error_type: str | None = Field(default=None, title="Error Type")
+
+
+class McpServerListResponse(BaseModel):
+    results: list[McpServerResponse] = Field(..., title="Results")
 
 
 class MessageListResponse(BaseModel):
@@ -5895,6 +6055,9 @@ class ToolsConfig(BaseModel):
     voicemail: VoicemailToolConfig | None = Field(
         default=None, description="Voicemail detection settings"
     )
+    add_to_dnc: AddToDncConfig | None = Field(
+        default=None, description="In-call do-not-call opt-out tool"
+    )
     place_outbound_call: PlaceOutboundCallConfig | None = Field(
         default=None, description="Outbound call initiation tool"
     )
@@ -6118,7 +6281,7 @@ class WebhookCreate(BaseModel):
         min_length=1,
         title="Name",
     )
-    description: Description8 | None = Field(
+    description: Description7 | None = Field(
         default=None, description="Optional description", title="Description"
     )
     url: str = Field(

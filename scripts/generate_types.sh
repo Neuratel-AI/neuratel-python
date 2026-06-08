@@ -6,17 +6,22 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Try the in-tree Platform docs first (fast, deterministic), fall back to the
-# remote staging spec.
-LOCAL_SPEC="$REPO_ROOT/../Platform/docs/apis/openapi.json"
-REMOTE_SPEC="https://staging-api.neuratel.ai/openapi.json"
+# The live API is the source of truth (FastAPI auto-generates /openapi.json).
+# Fall back to the local copy only when offline or CI needs determinism.
+REMOTE_SPEC="https://api.neuratel.ai/openapi.json"
+LOCAL_SPEC="$REPO_ROOT/../platform/research/competitor-schemas/neuratel-openapi.json"
 
-if [[ -f "$LOCAL_SPEC" ]]; then
-  INPUT="$LOCAL_SPEC"
-  echo "📥 Using local Platform spec: $INPUT"
+if curl -sf --max-time 10 "$REMOTE_SPEC" -o /tmp/_neuratel_spec.json 2>/dev/null; then
+  INPUT="/tmp/_neuratel_spec.json"
+  echo "📥 Using live spec from $REMOTE_SPEC"
 else
-  INPUT="$REMOTE_SPEC"
-  echo "📥 Using remote staging spec: $INPUT"
+  if [[ -f "$LOCAL_SPEC" ]]; then
+    INPUT="$LOCAL_SPEC"
+    echo "⚠️  Remote spec unavailable, using local copy: $INPUT"
+  else
+    echo "❌ No spec available (remote unreachable, local copy missing)" >&2
+    exit 1
+  fi
 fi
 
 OUTPUT="$REPO_ROOT/src/neuratelai/types/_generated.py"
