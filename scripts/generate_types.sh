@@ -11,7 +11,10 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 REMOTE_SPEC="https://api.neuratel.ai/openapi.json"
 LOCAL_SPEC="$REPO_ROOT/../platform/research/competitor-schemas/neuratel-openapi.json"
 
-if curl -sf --max-time 10 "$REMOTE_SPEC" -o /tmp/_neuratel_spec.json 2>/dev/null; then
+if [[ "${FORCE_LOCAL:-0}" == "1" ]]; then
+  INPUT="$LOCAL_SPEC"
+  echo "⚠️  FORCE_LOCAL=1, using local copy: $INPUT"
+elif curl -sf --max-time 10 "$REMOTE_SPEC" -o /tmp/_neuratel_spec.json 2>/dev/null; then
   INPUT="/tmp/_neuratel_spec.json"
   echo "📥 Using live spec from $REMOTE_SPEC"
 else

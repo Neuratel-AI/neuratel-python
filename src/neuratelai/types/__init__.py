@@ -65,16 +65,12 @@ CartesiaVoiceConfig = _g.CartesiaVoiceConfig
 CartesiaModel = _g.CartesiaModel
 CartesiaEmotion = _g.CartesiaEmotion
 CartesiaSpeed = _g.CartesiaSpeed
-ElevenLabsVoiceConfig = _g.ElevenLabsVoiceConfig
-ElevenLabsModel = _g.ElevenLabsModel
 PhantomVoiceConfig = _g.PhantomVoiceConfig
 
 # ── Transcriber (STT) configs ─────────────────────────────────────────────
 DeepgramTranscriberConfig = _g.DeepgramTranscriberConfig
 DeepgramNovaModel = _g.DeepgramNovaModel
 DeepgramLanguage = _g.DeepgramLanguage
-OpenAITranscriberConfig = _g.OpenAITranscriberConfig
-OpenAIWhisperModel = _g.OpenAIWhisperModel
 SonioxTranscriberConfig = _g.SonioxTranscriberConfig
 SonioxModel = _g.SonioxModel
 PhantomTranscriberConfig = _g.PhantomTranscriberConfig
@@ -198,15 +194,11 @@ __all__ = [
     "CartesiaModel",
     "CartesiaEmotion",
     "CartesiaSpeed",
-    "ElevenLabsVoiceConfig",
-    "ElevenLabsModel",
     "PhantomVoiceConfig",
     # Transcriber configs
     "DeepgramTranscriberConfig",
     "DeepgramNovaModel",
     "DeepgramLanguage",
-    "OpenAITranscriberConfig",
-    "OpenAIWhisperModel",
     "SonioxTranscriberConfig",
     "SonioxModel",
     "PhantomTranscriberConfig",

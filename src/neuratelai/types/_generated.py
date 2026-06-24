@@ -1442,6 +1442,7 @@ class CartesiaModel(Enum):
     Cartesia TTS models - Updated Apr 2026.
     """
 
+    sonic_3_5 = "sonic-3.5"
     sonic_3 = "sonic-3"
 
 
@@ -2047,6 +2048,8 @@ class DeepgramNovaModel(Enum):
 
     nova_3 = "nova-3"
     nova_3_medical = "nova-3-medical"
+    flux = "flux"
+    flux_multilingual = "flux-multilingual"
 
 
 class DeepgramTranscriberConfig(BaseModel):
@@ -2232,87 +2235,6 @@ class EdgeCondition(BaseModel):
     field: str | None = Field(default=None, title="Field")
     operator: str | None = Field(default=None, title="Operator")
     value: str | None = Field(default=None, title="Value")
-
-
-class ElevenLabsModel(Enum):
-    """
-    ElevenLabs TTS models - Updated Apr 2026.
-    """
-
-    eleven_flash_v2_5 = "eleven_flash_v2_5"
-
-
-class Style(RootModel[float]):
-    root: float = Field(
-        ...,
-        description="Style exaggeration. Higher = more expressive",
-        ge=0.0,
-        le=1.0,
-        title="Style",
-    )
-
-
-class Speed(RootModel[float]):
-    root: float = Field(
-        1.0, description="Speaking speed", ge=0.25, le=4.0, title="Speed"
-    )
-
-
-class ElevenLabsVoiceConfig(BaseModel):
-    """
-    ElevenLabs voice configuration.
-
-    SDK Defaults:
-    - voice_id: "bIHbv24MWmeRgasZH58o"
-    - model: "eleven_flash_v2_5"
-    - VoiceSettings: stability, similarity_boost (REQUIRED in SDK)
-    - apply_text_normalization: "auto"
-    """
-
-    provider: Literal["elevenlabs"] = Field(default="elevenlabs", title="Provider")
-    voice_id: str | None = Field(
-        default="bIHbv24MWmeRgasZH58o",
-        description="ElevenLabs voice ID (from voice library or cloned voice)",
-        title="Voice Id",
-    )
-    model: ElevenLabsModel | None = Field(
-        default="eleven_flash_v2_5", description="ElevenLabs model to use"
-    )
-    stability: float | None = Field(
-        default=0.5,
-        description="Voice stability (0=variable, 1=stable). Lower = more expressive",
-        ge=0.0,
-        le=1.0,
-        title="Stability",
-    )
-    similarity_boost: float | None = Field(
-        default=0.75,
-        description="Voice similarity boost. Higher = closer to original voice",
-        ge=0.0,
-        le=1.0,
-        title="Similarity Boost",
-    )
-    style: Style | None = Field(
-        default=None,
-        description="Style exaggeration. Higher = more expressive",
-        title="Style",
-    )
-    speed: Speed | None = Field(
-        default=1.0, description="Speaking speed", title="Speed", validate_default=True
-    )
-    use_speaker_boost: bool | None = Field(
-        default=None, description="Enhance voice clarity", title="Use Speaker Boost"
-    )
-    apply_text_normalization: str | None = Field(
-        default="auto",
-        description="Text normalization mode (auto, on, off)",
-        title="Apply Text Normalization",
-    )
-    language: str | None = Field(
-        default=None,
-        description="ISO language code (e.g., 'en', 'es', 'fr'). None for auto-detect",
-        title="Language",
-    )
 
 
 class EmailSubscribeRequest(BaseModel):
@@ -3068,10 +2990,8 @@ class OpenAIModel(Enum):
     OpenAI chat models - Updated Apr 2026.
     """
 
-    gpt_5_4 = "gpt-5.4"
     gpt_5_4_mini = "gpt-5.4-mini"
     gpt_5_4_nano = "gpt-5.4-nano"
-    gpt_4_1 = "gpt-4.1"
     gpt_4_1_mini = "gpt-4.1-mini"
     gpt_4_1_nano = "gpt-4.1-nano"
 
@@ -3086,12 +3006,17 @@ class MaxCompletionTokens(RootModel[int]):
     )
 
 
-class OpenAIWhisperModel(Enum):
+class ReasoningEffort1(Enum):
     """
-    OpenAI transcription models - Updated Apr 2026.
+    Reasoning effort for OpenAI reasoning models. Only 'none', 'minimal', 'low', 'medium', 'high', 'max' are valid.
     """
 
-    gpt_4o_mini_transcribe = "gpt-4o-mini-transcribe"
+    none = "none"
+    minimal = "minimal"
+    low = "low"
+    medium = "medium"
+    high = "high"
+    max = "max"
 
 
 class OrgUsageItem(BaseModel):
@@ -4102,6 +4027,7 @@ class SonioxModel(Enum):
     including English + Arabic with native code-switching and built-in semantic EOU.
     """
 
+    stt_rt_v5 = "stt-rt-v5"
     stt_rt_v4 = "stt-rt-v4"
 
 
@@ -4961,74 +4887,6 @@ class WorkingHoursConfig(BaseModel):
     )
 
 
-class XAIModel(Enum):
-    """
-    xAI Grok models. Non-reasoning variants for voice (low latency, no thinking tokens).
-    """
-
-    grok_4_1_fast_non_reasoning = "grok-4-1-fast-non-reasoning"
-    grok_4_20_0309_non_reasoning = "grok-4.20-0309-non-reasoning"
-
-
-class MaxCompletionTokens2(RootModel[int]):
-    root: int = Field(
-        4096,
-        description="Maximum tokens in response",
-        ge=1,
-        le=128000,
-        title="Max Completion Tokens",
-    )
-
-
-class XAIModelConfig(BaseModel):
-    """
-    xAI Grok model configuration.
-    """
-
-    provider: Literal["xai"] = Field(default="xai", title="Provider")
-    model: XAIModel | None = Field(
-        default="grok-4-1-fast-non-reasoning", description="xAI model to use"
-    )
-    instructions: str | None = Field(
-        default="You are a helpful AI assistant.",
-        description="System prompt/instructions for the model",
-        title="Instructions",
-    )
-    system_timezone: str | None = Field(
-        default="UTC",
-        description="Agent's timezone for time-aware responses",
-        title="System Timezone",
-    )
-    temperature: float | None = Field(
-        default=0.8,
-        description="Randomness in responses",
-        ge=0.0,
-        le=2.0,
-        title="Temperature",
-    )
-    max_completion_tokens: MaxCompletionTokens2 | None = Field(
-        default=4096,
-        description="Maximum tokens in response",
-        title="Max Completion Tokens",
-        validate_default=True,
-    )
-    tool_choice: ToolChoice | None = Field(
-        default="auto", description="How to select tools"
-    )
-    parallel_tool_calls: bool | None = Field(
-        default=True,
-        description="Allow the model to call multiple tools in a single response.",
-        title="Parallel Tool Calls",
-    )
-    max_tool_steps: int | None = Field(
-        default=3,
-        description="Maximum consecutive tool calls per LLM turn.",
-        ge=1,
-        le=20,
-        title="Max Tool Steps",
-    )
-
-
 class KnowledgeBaseFileUpload(BaseModel):
     """
     Upload a file to create a knowledge base.
@@ -5714,14 +5572,14 @@ class OpenAIModelConfig(BaseModel):
     OpenAI GPT model configuration.
 
     SDK Notes:
-    - Default model in SDK is 'gpt-4.1'
+    - Default model in SDK is 'gpt-4.1-mini'
     - Parameter is max_completion_tokens (NOT max_tokens)
     - parallel_tool_calls supported
     """
 
     provider: Literal["openai"] = Field(default="openai", title="Provider")
     model: OpenAIModel | None = Field(
-        default="gpt-4.1", description="OpenAI model to use"
+        default="gpt-4.1-mini", description="OpenAI model to use"
     )
     instructions: str | None = Field(
         default="You are a helpful AI assistant.",
@@ -5761,39 +5619,10 @@ class OpenAIModelConfig(BaseModel):
         le=20,
         title="Max Tool Steps",
     )
-
-
-class OpenAITranscriberConfig(BaseModel):
-    """
-    OpenAI transcriber configuration.
-
-    SDK Defaults:
-    - model: "gpt-4o-mini-transcribe"
-    - language: "en"
-    - detect_language: False
-    """
-
-    provider: Literal["openai"] = Field(default="openai", title="Provider")
-    model: OpenAIWhisperModel | None = Field(
-        default="gpt-4o-mini-transcribe", description="OpenAI transcription model"
-    )
-    language: str | None = Field(
-        default="en", description="Language code (ISO)", title="Language"
-    )
-    detect_language: bool | None = Field(
-        default=False,
-        description="Automatically detect the language",
-        title="Detect Language",
-    )
-    prompt: str | None = Field(
+    reasoning_effort: ReasoningEffort1 | None = Field(
         default=None,
-        description="Optional prompt for context/vocabulary hints",
-        title="Prompt",
-    )
-    noise_reduction_type: str | None = Field(
-        default=None,
-        description="Noise reduction type (auto, near_field, far_field). Optional.",
-        title="Noise Reduction Type",
+        description="Reasoning effort for OpenAI reasoning models. Only 'none', 'minimal', 'low', 'medium', 'high', 'max' are valid.",
+        title="Reasoning Effort",
     )
 
 
@@ -6579,23 +6408,18 @@ class AgentCreate(BaseModel):
     description: Description | None = Field(
         default=None, description="Agent description", title="Description"
     )
-    brain: (
-        OpenAIModelConfig | GroqModelConfig | XAIModelConfig | PhantomModelConfig | None
-    ) = Field(
+    brain: OpenAIModelConfig | GroqModelConfig | PhantomModelConfig | None = Field(
         default=None,
         description="LLM configuration. Default: OpenAI GPT-4.1",
         title="Brain",
     )
-    voice: ElevenLabsVoiceConfig | CartesiaVoiceConfig | PhantomVoiceConfig | None = (
-        Field(
-            default=None,
-            description="TTS configuration. Default: ElevenLabs Flash v2.5",
-            title="Voice",
-        )
+    voice: CartesiaVoiceConfig | PhantomVoiceConfig | None = Field(
+        default=None,
+        description="TTS configuration. Default: ElevenLabs Flash v2.5",
+        title="Voice",
     )
     transcriber: (
         DeepgramTranscriberConfig
-        | OpenAITranscriberConfig
         | SonioxTranscriberConfig
         | PhantomTranscriberConfig
         | None
@@ -6649,19 +6473,16 @@ class AgentUpdate(BaseModel):
     is_active: bool | None = Field(
         default=None, description="Whether agent is active", title="Is Active"
     )
-    brain: (
-        OpenAIModelConfig | GroqModelConfig | XAIModelConfig | PhantomModelConfig | None
-    ) = Field(
+    brain: OpenAIModelConfig | GroqModelConfig | PhantomModelConfig | None = Field(
         default=None,
         description="LLM configuration (brain - what thinks)",
         title="Brain",
     )
-    voice: ElevenLabsVoiceConfig | CartesiaVoiceConfig | PhantomVoiceConfig | None = (
-        Field(default=None, description="TTS configuration", title="Voice")
+    voice: CartesiaVoiceConfig | PhantomVoiceConfig | None = Field(
+        default=None, description="TTS configuration", title="Voice"
     )
     transcriber: (
         DeepgramTranscriberConfig
-        | OpenAITranscriberConfig
         | SonioxTranscriberConfig
         | PhantomTranscriberConfig
         | None
