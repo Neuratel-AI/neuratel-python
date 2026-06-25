@@ -9,7 +9,7 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 # The live API is the source of truth (FastAPI auto-generates /openapi.json).
 # Fall back to the local copy only when offline or CI needs determinism.
 REMOTE_SPEC="https://api.neuratel.ai/openapi.json"
-LOCAL_SPEC="$REPO_ROOT/../platform/research/competitor-schemas/neuratel-openapi.json"
+LOCAL_SPEC="$REPO_ROOT/../platform/backend/openapi.json"
 
 if [[ "${FORCE_LOCAL:-0}" == "1" ]]; then
   INPUT="$LOCAL_SPEC"

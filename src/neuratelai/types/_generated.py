@@ -3089,10 +3089,6 @@ class CartesiaApiKey(RootModel[str]):
     root: str = Field(..., max_length=500, title="Cartesia Api Key")
 
 
-class XaiApiKey(RootModel[str]):
-    root: str = Field(..., max_length=500, title="Xai Api Key")
-
-
 class OrganizationCredentialsUpdate(BaseModel):
     """
     Schema for updating organization API credentials only
@@ -3110,7 +3106,6 @@ class OrganizationCredentialsUpdate(BaseModel):
     cartesia_api_key: CartesiaApiKey | None = Field(
         default=None, title="Cartesia Api Key"
     )
-    xai_api_key: XaiApiKey | None = Field(default=None, title="Xai Api Key")
 
 
 class PilotIncludedMinutesUsed(RootModel[str]):
@@ -3221,7 +3216,6 @@ class OrganizationResponse(BaseModel):
     elevenlabs_api_key: str | None = Field(default=None, title="Elevenlabs Api Key")
     groq_api_key: str | None = Field(default=None, title="Groq Api Key")
     cartesia_api_key: str | None = Field(default=None, title="Cartesia Api Key")
-    xai_api_key: str | None = Field(default=None, title="Xai Api Key")
     permissions: dict[str, Any] | None = Field(default=None, title="Permissions")
     status: str = Field(..., title="Status")
     created_at: AwareDatetime = Field(..., title="Created At")
@@ -3295,7 +3289,6 @@ class OrganizationUpdate(BaseModel):
     cartesia_api_key: CartesiaApiKey | None = Field(
         default=None, title="Cartesia Api Key"
     )
-    xai_api_key: XaiApiKey | None = Field(default=None, title="Xai Api Key")
 
 
 class OutboundCampaignCreate(BaseModel):
